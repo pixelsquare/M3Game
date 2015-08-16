@@ -17,7 +17,6 @@ import m3.pxlSq.Utils;
  */
 class M3Main
 {
-	
 	private var m3Entity: Entity;
 	private var grids: Array<Array<M3Grid>>;
 	private var gridSprite: Sprite;

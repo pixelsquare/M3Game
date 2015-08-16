@@ -5,17 +5,19 @@ import flambe.display.FillSprite;
 import flambe.Entity;
 import flambe.math.Point;
 
+import m3.pxlSq.Utils;
+
 /**
  * ...
  * @author Anthony Ganzon
  */
 class M3Grid extends Component
 {
-	public var x(get, null): AnimatedFloat;
-	public var y(get, null): AnimatedFloat;
+	public var x(default, null): AnimatedFloat;
+	public var y(default, null): AnimatedFloat;
 	
-	public var width(get, null): AnimatedFloat;
-	public var height(get, null): AnimatedFloat;
+	public var width(default, null): AnimatedFloat;
+	public var height(default, null): AnimatedFloat;
 	
 	public var color: Int;
 	
@@ -34,7 +36,7 @@ class M3Grid extends Component
 	
 	public function CreateGrid(): Void {
 		gridEntity = new Entity();
-		
+
 		gridTexture = new FillSprite(this.color, this.width._, this.height._);
 		gridTexture.centerAnchor();
 		gridTexture.setXY(x._, y._);
@@ -44,27 +46,27 @@ class M3Grid extends Component
 	public function SetGridXY(x: Float, y: Float): Void {
 		this.x._ = x;
 		this.y._ = y;
+		gridTexture.setXY(this.x._, this.y._);
 	}
 	
 	public function SetGridSize(w: Float, h: Float): Void {
-		gridTexture.width._ = w;
-		gridTexture.height._ = h;
+		this.width._ = w;
+		this.height._ = h;
+		gridTexture.width._ = this.width._;
+		gridTexture.height._	= this.height._;
 	}
 	
-	public function get_x(): AnimatedFloat { 
-		return gridTexture.x;
+	public function SetGridColor(color: Int): Void {
+		this.color = color;
+		gridTexture.color = this.color;
 	}
 	
-	public function get_y(): AnimatedFloat {
-		return gridTexture.y;
+	public function GetNaturalWidth(): Float {
+		return width._;
 	}
 	
-	public function get_width(): AnimatedFloat {
-		return gridTexture.width;
-	}
-	
-	public function get_height(): AnimatedFloat {
-		return gridTexture.height;
+	public function getNaturalHeight(): Float {
+		return height._;
 	}
 	
 	override public function onAdded() 
@@ -73,14 +75,17 @@ class M3Grid extends Component
 		owner.addChild(gridEntity);
 	}
 	
-	override public function onRemoved() 
+	override public function onUpdate(dt:Float) 
 	{
-		super.onRemoved();
-	}
-	
-	override public function dispose() 
-	{
-		super.dispose();
-		gridEntity.dispose();
+		super.onUpdate(dt);
+		x.update(dt);
+		y.update(dt);
+		width.update(dt);
+		height.update(dt);
+		
+		gridTexture.setXY(this.x._, this.y._);
+		gridTexture.width._ = this.width._;
+		gridTexture.height._	= this.height._;
+		gridTexture.color = this.color;
 	}
 }

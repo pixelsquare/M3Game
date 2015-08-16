@@ -3,7 +3,16 @@ package m3.main;
 import flambe.Component;
 import flambe.display.FillSprite;
 import flambe.Entity;
+import flambe.input.PointerEvent;
 import flambe.math.Point;
+import flambe.animation.AnimatedFloat;
+import flambe.script.Script;
+import flambe.script.Sequence;
+import flambe.script.AnimateTo;
+import flambe.script.CallFunction;
+import flambe.System;
+
+import m3.pxlSq.Utils;
 
 /**
  * ...
@@ -11,25 +20,32 @@ import flambe.math.Point;
  */
 class M3Item extends Component
 {
-	public var x(get, null): AnimatedFloat;
-	public var y(get, null): AnimatedFloat;
+	public var x(default, null): AnimatedFloat;
+	public var y(default, null): AnimatedFloat;
 	
-	public var width(get, null): AnimatedFloat;
-	public var height(get, null): AnimatedFloat;
+	public var width(default, null): AnimatedFloat;
+	public var height(default, null): AnimatedFloat;
 	
 	public var color: Int;
 	
-	private var itemEntity: Entity;
-	private var itemTexture: FillSprite;
+	public var spawner: M3Spawner;
+	private var gridIndx: Int;
 	
-	public function new(color: Int, width: Float, height: Float) {
+	private var gridContainer: M3GridContainer;
+	
+	private var itemEntity: Entity;
+	public var itemTexture(default, null): FillSprite;
+	
+	public function new(color: Int, width: Float, height: Float, spawner: M3Spawner) {
 		this.x = new AnimatedFloat(0);
 		this.y = new AnimatedFloat(0);
 		this.width = new AnimatedFloat(width);
 		this.height = new AnimatedFloat(height);
+		this.spawner = spawner;
 		this.color = color;
 		
 		CreateItem();
+		MoveDown();
 	}
 	
 	public function CreateItem(): Void {
@@ -39,32 +55,62 @@ class M3Item extends Component
 		itemTexture.centerAnchor();
 		itemTexture.setXY(x._, y._);
 		itemEntity.addChild(new Entity().add(itemTexture));
+		
+		itemTexture.alpha.animate(0, 1, 0.5);
+	}
+	
+	public function MoveDown(): Void {
+		if (spawner.spawnerGrids[gridIndx].item != null)
+			return;
+			
+		if (gridIndx > 0) { 
+			spawner.spawnerGrids[gridIndx - 1].SetItem(null);
+		}
+		spawner.spawnerGrids[gridIndx].SetItem(this);
+		gridContainer = spawner.spawnerGrids[gridIndx];
+		
+		var gridPoint: Point = M3Board.GetGridXY(spawner.spawnerID, gridIndx);
+		var script: Script = new Script();
+		script.run(new Sequence([
+			new AnimateTo(this.y, gridPoint.y, 0.5),
+			new CallFunction(function() {
+				gridIndx++;
+				script.dispose();
+				MoveDown();
+			})
+		]));
+		itemEntity.add(script);
+	}
+	
+	public function RemoveItem(): Void {
+		gridContainer.SetItem(null);
+		owner.removeChild(new Entity().add(this));
 	}
 
 	public function SetItemXY(x: Float, y: Float): Void {
 		this.x._ = x;
 		this.y._ = y;
+		itemTexture.setXY(this.x._, this.y._);
 	}
 	
 	public function SetItemSize(w: Float, h: Float): Void {
-		itemTexture.width._ = w;
-		itemTexture.height._ = h;
+		this.width._ = w;
+		this.height._ = h;
+		itemTexture.width._ = this.width._;
+		itemTexture.height._	= this.height._;
 	}
 	
-	public function get_x(): AnimatedFloat { 
-		return itemTexture.x;
+	public function SetItemColor(color: Int): Void {
+		this.color = color;
+		itemTexture.color = this.color;
 	}
 	
-	public function get_y(): AnimatedFloat {
-		return itemTexture.y;
+	public function GetNaturalWidth(): Float {
+		return width._;
 	}
 	
-	public function get_width(): AnimatedFloat {
-		return itemTexture.width;
-	}
-	
-	public function get_height(): AnimatedFloat {
-		return itemTexture.height;
+	public function getNaturalHeight(): Float {
+		return height._;
 	}
 	
 	override public function onAdded() 
@@ -72,16 +118,22 @@ class M3Item extends Component
 		super.onAdded();
 		owner.addChild(itemEntity);
 	}
-	
-	override public function onRemoved() 
+
+	override public function onUpdate(dt:Float) 
 	{
-		super.onRemoved();
+		super.onUpdate(dt);
+		x.update(dt);
+		y.update(dt);
+		width.update(dt);
+		height.update(dt);
+		
+		//if(spawner.HasEmptySlot()) {
+			//MoveDown();
+		//}
+		
+		itemTexture.setXY(this.x._, this.y._);
+		itemTexture.width._ = this.width._;
+		itemTexture.height._	= this.height._;
+		itemTexture.color = this.color;
 	}
-	
-	override public function dispose() 
-	{
-		super.dispose();
-		itemEntity.dispose();
-	}
-	
 }

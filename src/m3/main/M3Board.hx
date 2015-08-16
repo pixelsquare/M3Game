@@ -9,6 +9,7 @@ import flambe.System;
 
 import m3.main.M3Grid;
 import m3.pxlSq.Utils;
+import m3.main.M3GridContainer;
 
 /**
  * ...
@@ -17,9 +18,8 @@ import m3.pxlSq.Utils;
 class M3Board extends Component
 {
 	public var boardGrids(default, null): Array<Array<M3Grid>>;
-	
-	private var boardEntity: Entity;
-	private var boardSpawners: Array<M3Spawner>;
+	public var boardEntity(default, null): Entity;
+	public var boardSpawners(default, null): Array<M3Spawner>;
 	
 	private var gridSize: Int;
 	private var gridRows: Int;
@@ -28,12 +28,16 @@ class M3Board extends Component
 	private var gridSprite: Sprite;
 	private var gridRect: Rectangle;
 	
+	public static var current: M3Board;
+	
 	private static inline var GRID_DIST = 1.1;
 	
 	public function new(size: Int, rows: Int, cols: Int) {
 		gridSize = size;
 		gridRows = rows;
 		gridColumns = cols;
+		
+		current = this;
 		
 		CreateGridBoard();
 		CreateSpawners();
@@ -47,7 +51,7 @@ class M3Board extends Component
 		
 		var gridEntity: Entity = new Entity();
 		boardGrids = new Array<Array<M3Grid>>();
-		
+
 		var x: Int = 0;
 		while (x < gridRows) {
 			var tilesArray: Array<M3Grid> = new Array<M3Grid>();
@@ -55,8 +59,8 @@ class M3Board extends Component
 			while (y < gridColumns) {
 				var tile: M3Grid = new M3Grid(0xFFFFFF, gridSize, gridSize);
 				tile.SetGridXY(
-					x * tile.x._ * GRID_DIST,
-					y * tile.y._ * GRID_DIST
+					x * tile.width._ * GRID_DIST,
+					y * tile.height._ * GRID_DIST
 				);
 				gridEntity.addChild(new Entity().add(tile));
 				
@@ -67,11 +71,11 @@ class M3Board extends Component
 			boardGrids.push(tilesArray);
 			x++;
 		}
-		
+
 		var i = 1;
 		for (ii in 0...boardGrids.length) {
 			for (grid in boardGrids[ii]) {
-				grid.color = (i % 2 == 0) ? 0x202020 : 0xFFFFFF;
+				grid.SetGridColor((i % 2 == 0) ? 0x202020 : 0xFFFFFF);
 				i++;
 			}
 		}
@@ -91,31 +95,37 @@ class M3Board extends Component
 			gridRect.x + gridSprite.x._ - (gridSize * GRID_DIST) / 4,
 			gridRect.y + gridSprite.y._ - (gridSize * GRID_DIST) / 4
 		);
+		
+		//Utils.ConsoleLog(gridRect.x + " " + gridRect.y + " " + gridRect.width + " " + gridRect.height);
+		//Utils.ConsoleLog(gridSprite.x + " " + gridSprite.y + " " + gridSprite.getNaturalWidth() + " " + gridSprite.getNaturalHeight());
 	}
 	
 	public function CreateSpawners(): Void {
 		boardSpawners = new Array<M3Spawner>();
 		
-		for (ii in 0...boardGrids.length) {
-			var spawner: M3Spawner = new M3Spawner(null);
-			//spawner.x._ = GetGridXY(ii, 0).x;
-			//spawner.y._ = GetGrid(ii, 0).y;
-			//spawner.SetSpawnerXY(GetGridXY(ii, 0).x, GetGridXY(ii, 0).y);
-			boardEntity.addChild(new Entity().add(spawner));
+		for (ii in 0...1) {
+			var gridArray: Array<M3GridContainer> = new Array<M3GridContainer>();
+			for (jj in 0...boardGrids[ii].length) {
+				gridArray.push(new M3GridContainer(boardGrids[ii][jj], null));
+			}
 			
-			Utils.ConsoleLog(ii + " " + GetGridXY(ii, 0).x + " " + GetGridXY(ii, 0).y);
+			var grid: Point = GetGridXY(ii, 0);
+			var spawner: M3Spawner = new M3Spawner(ii, gridArray);
+			spawner.SetSpawnerXY(grid.x, grid.y - (GetGrid(ii, 0).height._));
+			boardEntity.addChild(new Entity().add(spawner));
+			boardSpawners.push(spawner);
 		}
 	}
 	
-	public function GetGrid(x: Int, y: Int): M3Grid {
-		return boardGrids[x][y];
+	public static function GetGrid(x: Int, y: Int): M3Grid {
+		return current.boardGrids[x][y];
 	}
 	
-	public function GetGridXY(x: Int, y: Int): Point {
+	public static function GetGridXY(x: Int, y: Int): Point {
 		var grid: M3Grid = GetGrid(x, y);
 		var result: Point = new Point(grid.x._, grid.y._);
-		result.x += gridSprite.x._ - gridRect.x;
-		result.y += gridSprite.y._ - gridRect.y;
+		result.x += current.gridSprite.x._;
+		result.y += current.gridSprite.y._;
 		return result;
 	}
 	
