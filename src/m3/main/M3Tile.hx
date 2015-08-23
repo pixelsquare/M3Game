@@ -1,8 +1,14 @@
 package m3.main;
 
 import flambe.display.FillSprite;
+import flambe.Entity;
 import flambe.input.PointerEvent;
+import flambe.script.AnimateTo;
+import flambe.script.CallFunction;
+import flambe.script.Script;
+import flambe.script.Sequence;
 import m3.pxlSq.Utils;
+import flambe.animation.Ease;
 
 /**
  * ...
@@ -30,7 +36,7 @@ class M3Tile extends M3Element implements IGrid
 	
 	public function DrawTile(): Void {
 		tileSquare = new FillSprite(this.color, this.width, this.height);
-		tileSquare.setXY(this.x, this.y);
+		tileSquare.setXY(this.x._, this.y._);
 		tileSquare.centerAnchor();
 		elementEntity.add(tileSquare);
 		
@@ -53,13 +59,12 @@ class M3Tile extends M3Element implements IGrid
 			//Utils.ConsoleLog(PrintID() + " | " + nextTile.PrintID());
 			elementParent.get(M3Main).gridList[id].SetTile(null);
 			elementParent.get(M3Main).gridBoard[idx][idy].SetTile(null);
-			
-			SetXY(nextTile.x, nextTile.y);
+					
+			this.y.animateTo(nextTile.y._, 0.5);
 			SetGridID(nextTile.id, nextTile.idx, nextTile.idy);
-			
+
 			elementParent.get(M3Main).gridList[nextTile.id].SetTile(this);
 			elementParent.get(M3Main).gridBoard[idx][idy + 1].SetTile(this);
-			//Utils.ConsoleLog(PrintID());
 		}
 	}
 	
@@ -69,7 +74,7 @@ class M3Tile extends M3Element implements IGrid
 		if (tileSquare == null)
 			return;	
 		
-		tileSquare.setXY(this.x, this.y);
+		tileSquare.setXY(this.x._, this.y._);
 	}
 	
 	override public function SetSize(width:Float, height:Float): Void {
@@ -89,7 +94,7 @@ class M3Tile extends M3Element implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
-		
+		tileSquare.setXY(this.x._, this.y._);
 		UpdatePosition();
 	}
 

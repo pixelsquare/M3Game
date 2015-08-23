@@ -6,6 +6,7 @@ import flambe.display.FillSprite;
 import flambe.Disposer;
 import m3.pxlSq.Utils;
 import flambe.display.Sprite;
+import flambe.animation.AnimatedFloat;
 
 /**
  * ...
@@ -13,8 +14,8 @@ import flambe.display.Sprite;
  */
 class M3Element extends Component
 {
-	public var x(default, null): Float;
-	public var y(default, null): Float;
+	public var x(default, null): AnimatedFloat;
+	public var y(default, null): AnimatedFloat;
 	
 	public var width(default, null): Float;
 	public var height(default, null): Float;
@@ -24,16 +25,16 @@ class M3Element extends Component
 	private var elementDisposer: Disposer;
 	
 	public function new() {
-		this.x = 0;
-		this.y = 0;
+		this.x = new AnimatedFloat(0.0);
+		this.y = new AnimatedFloat(0.0);
 		
 		this.width = 0;
 		this.height = 0;
 	}
 	
 	public function SetXY(x: Float, y: Float): Void {
-		this.x = x;
-		this.y = y;
+		this.x._ = x;
+		this.y._  = y;
 	}
 	
 	public function SetSize(width: Float, height: Float): Void {
@@ -57,6 +58,12 @@ class M3Element extends Component
 		
 		//Utils.ConsoleLog(elementParent.has(M3Main) + "");
 		//Utils.ConsoleLog(owner.toString());
+	}
+	
+	override public function onUpdate(dt:Float) {
+		super.onUpdate(dt);
+		this.x.update(dt);
+		this.y.update(dt);
 	}
 	
 	override public function dispose() {

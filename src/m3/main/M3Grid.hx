@@ -29,7 +29,7 @@ class M3Grid extends M3Element implements IGrid
 	
 	public function DrawGrid(): Void {
 		gridSquare = new FillSprite(this.color, this.width, this.height);
-		gridSquare.setXY(this.x, this.y);
+		gridSquare.setXY(this.x._, this.y._);
 		gridSquare.centerAnchor();
 		elementEntity.add(gridSquare);
 	}
@@ -48,7 +48,7 @@ class M3Grid extends M3Element implements IGrid
 		if (gridSquare == null)
 			return;
 			
-		gridSquare.setXY(this.x, this.y);
+		gridSquare.setXY(this.x._, this.y._);
 	}
 	
 	override public function SetSize(width:Float, height:Float): Void {
@@ -64,6 +64,11 @@ class M3Grid extends M3Element implements IGrid
 		super.onAdded();
 		
 		DrawGrid();
+	}
+	
+	override public function onUpdate(dt:Float) {
+		super.onUpdate(dt);
+		gridSquare.setXY(this.x._, this.y._);
 	}
 	
 	override public function dispose() {

@@ -30,7 +30,7 @@ class M3Main extends Component
 	private inline static var GRID_OFFSET: Float = 1.1;
 	private inline static var GRID_COLOR: Int = 0xFFFFFF;
 	
-	private inline static var TILE_SIZE = 10;
+	private inline static var TILE_SIZE = 20;
 	private inline static var TILE_COLOR: Int = 0x66CD00;
 	
 	public function new(data: DataManager) { }
@@ -75,10 +75,7 @@ class M3Main extends Component
 			tile.SetGridID(grid.id, grid.idx, grid.idy);
 			tile.SetSize(TILE_SIZE, TILE_SIZE);
 			tile.SetParent(owner);
-			tile.SetXY(
-				grid.x,
-				grid.y
-			);
+			tile.SetXY(grid.x._, grid.y._);
 			owner.addChild(new Entity().add(tile));
 
 			grid.SetTile(tile);	
