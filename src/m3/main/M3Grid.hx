@@ -1,91 +1,87 @@
 package m3.main;
-import flambe.animation.AnimatedFloat;
-import flambe.Component;
 import flambe.display.FillSprite;
-import flambe.Entity;
-import flambe.math.Point;
-
 import m3.pxlSq.Utils;
 
 /**
  * ...
  * @author Anthony Ganzon
  */
-class M3Grid extends Component
+class M3Grid extends M3Element implements IGrid
 {
-	public var x(default, null): AnimatedFloat;
-	public var y(default, null): AnimatedFloat;
+	public var id(default, null): Int;
+	public var idx(default, null): Int;
+	public var idy(default, null): Int;
 	
-	public var width(default, null): AnimatedFloat;
-	public var height(default, null): AnimatedFloat;
+	private var color: Int;
+	private var gridTile: M3Tile;
 	
-	public var color: Int;
+	private var gridSquare: FillSprite;
 	
-	private var gridEntity: Entity;
-	private var gridTexture: FillSprite;
-	
-	public function new(color: Int, width: Float, height: Float) {	
-		this.x = new AnimatedFloat(0);
-		this.y = new AnimatedFloat(0);
-		this.width = new AnimatedFloat(width);
-		this.height = new AnimatedFloat(height);
-		this.color = color;
+	public function new(color: Int) {
+		super();
 		
-		CreateGrid();
-	}
-	
-	public function CreateGrid(): Void {
-		gridEntity = new Entity();
-
-		gridTexture = new FillSprite(this.color, this.width._, this.height._);
-		gridTexture.centerAnchor();
-		gridTexture.setXY(x._, y._);
-		gridEntity.addChild(new Entity().add(gridTexture));
-	}
-	
-	public function SetGridXY(x: Float, y: Float): Void {
-		this.x._ = x;
-		this.y._ = y;
-		gridTexture.setXY(this.x._, this.y._);
-	}
-	
-	public function SetGridSize(w: Float, h: Float): Void {
-		this.width._ = w;
-		this.height._ = h;
-		gridTexture.width._ = this.width._;
-		gridTexture.height._	= this.height._;
-	}
-	
-	public function SetGridColor(color: Int): Void {
+		this.id = 0;
+		this.idx = 0;
+		this.idy = 0;
+		
 		this.color = color;
-		gridTexture.color = this.color;
 	}
 	
-	public function GetNaturalWidth(): Float {
-		return width._;
+	public function DrawGrid(): Void {
+		gridSquare = new FillSprite(this.color, this.width, this.height);
+		gridSquare.setXY(this.x, this.y);
+		gridSquare.centerAnchor();
+		elementEntity.add(gridSquare);
 	}
 	
-	public function getNaturalHeight(): Float {
-		return height._;
+	public function SetTile(tile: M3Tile): Void {
+		this.gridTile = tile;
 	}
 	
-	override public function onAdded() 
-	{
+	public function IsGridEmpty(): Bool {
+		return gridTile == null;
+	}
+	
+	override public function SetXY(x:Float, y:Float): Void {
+		super.SetXY(x, y);
+		
+		if (gridSquare == null)
+			return;
+			
+		gridSquare.setXY(this.x, this.y);
+	}
+	
+	override public function SetSize(width:Float, height:Float): Void {
+		super.SetSize(width, height);
+		
+		if (gridSquare == null)
+			return;
+			
+		gridSquare.setSize(this.width, this.height);
+	}
+	
+	override public function onAdded() {
 		super.onAdded();
-		owner.addChild(gridEntity);
+		
+		DrawGrid();
 	}
 	
-	override public function onUpdate(dt:Float) 
-	{
-		super.onUpdate(dt);
-		x.update(dt);
-		y.update(dt);
-		width.update(dt);
-		height.update(dt);
+	override public function dispose() {
+		super.dispose();
 		
-		gridTexture.setXY(this.x._, this.y._);
-		gridTexture.width._ = this.width._;
-		gridTexture.height._	= this.height._;
-		gridTexture.color = this.color;
+		elementParent.get(M3Main).gridList[id] = null;
+		elementParent.get(M3Main).gridBoard[idx][idy] = null;
+	}
+	
+	/* INTERFACE m3.main.IGrid */
+	
+	public function SetGridID(id: Int, idx:Int, idy:Int): Void {
+		this.id = id;
+		this.idx = idx;
+		this.idy = idy;
+	}
+	
+	public function PrintID(): String {
+		return this.id + " " + this.idx + " " + this.idy;
 	}
 }

@@ -14,8 +14,7 @@ import flambe.subsystem.StorageSystem;
 import haxe.io.Input;
 import m3.screen.PreloadScreen;
 import m3.screen.SplashScreen;
-
-import m3.core.GameData;
+import m3.core.GameManager;
 import m3.core.SceneManager;
 import m3.pxlSq.Utils;
 
@@ -40,8 +39,8 @@ class Main
 			promise.get(function(mainPack: AssetPack) {
 				Utils.ConsoleLog("Main pack loaded");				
 				
-				var gameManager: GameData = new GameData(mainPack, System.storage);
-				sceneManager.InitializeScreens();
+				var gameManager: GameManager = new GameManager(mainPack, System.storage);
+				sceneManager.InitScreens(mainPack, System.storage);
 				//sceneManager.ShowLevelScreen();
 				sceneManager.ShowMainScreen();
 				//sceneManager.ShowScreen(new SplashScreen(preloadPack, 2), true);

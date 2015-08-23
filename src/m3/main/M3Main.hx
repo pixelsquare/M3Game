@@ -1,53 +1,108 @@
 package m3.main;
-import flambe.display.FillSprite;
+import flambe.Component;
 import flambe.display.Sprite;
+import flambe.Disposer;
 import flambe.Entity;
 import flambe.math.Rectangle;
-import flambe.script.AnimateTo;
-import flambe.script.Script;
-import flambe.script.Sequence;
-import flambe.System;
-import flambe.script.Action;
-
+import m3.core.DataManager;
 import m3.pxlSq.Utils;
+import flambe.System;
+import m3.core.GameManager;
 
 /**
  * ...
  * @author Anthony Ganzon
  */
-class M3Main
+class M3Main extends Component
 {
-	private var m3Entity: Entity;
-	private var grids: Array<Array<M3Grid>>;
-	private var gridSprite: Sprite;
+	private var gameEntity: Entity;
+	private var gameDisposer: Disposer;
 	
-	//private var test: FillSprite;
+	public var gridBoard(default, null): Array<Array<M3Grid>>;
+	public var gridList(default, null): Array<M3Grid>;
+	public var tileList(default, null): Array<M3Tile>;
 	
-	private static inline var GRID_SIZE: Int = 30;
-	private static inline var GRID_ROWS: Int = 9;
-	private static inline var GRID_COLUMNS: Int = 9;
-	private static inline var GRID_DIST = 1.1;
+	private var tileEntity: Entity;
+	
+	private inline static var GRID_ROWS: Int = 10;
+	private inline static var GRID_COLS: Int = 10;
+	private inline static var GRID_SIZE: Int = 30;
+	private inline static var GRID_OFFSET: Float = 1.1;
+	private inline static var GRID_COLOR: Int = 0xFFFFFF;
+	
+	private inline static var TILE_SIZE = 10;
+	private inline static var TILE_COLOR: Int = 0x66CD00;
+	
+	public function new(data: DataManager) { }
+	
+	public function CreateGrid(): Void {
+		gridBoard = new Array<Array<M3Grid>>();
+		gridList = new Array<M3Grid>();
+		
+		var x: Int = 0, i: Int = 0;
+		while (x < GRID_ROWS) {
+			
+			var gridArray: Array<M3Grid> = new Array<M3Grid>();
+			var y: Int = 0;
+			while (y < GRID_COLS) {				
+				var grid: M3Grid = new M3Grid(GRID_COLOR);
+				grid.SetGridID(i, x, y);
+				grid.SetSize(GRID_SIZE, GRID_SIZE);	
+				grid.SetParent(owner);
+				grid.SetXY(
+					(System.stage.width / 2) + ((x - (GRID_ROWS / 2)) * grid.width * GRID_OFFSET),
+					(System.stage.height / 2) + ((y - (GRID_COLS / 2)) * grid.height * GRID_OFFSET)
+				);
+				owner.addChild(new Entity().add(grid));
+				
+				gridArray.push(grid);
+				gridList.push(grid);
+				
+				y++;
+				i++;
+			}
+			
+			gridBoard.push(gridArray);
+			x++;
+		}
+	}
+	
+	public function CreateTiles(): Void {
+		tileList = new Array<M3Tile>();
+		
+		for (grid in gridList) {
+			var tile: M3Tile = new M3Tile(TILE_COLOR);
+			tile.SetGridID(grid.id, grid.idx, grid.idy);
+			tile.SetSize(TILE_SIZE, TILE_SIZE);
+			tile.SetParent(owner);
+			tile.SetXY(
+				grid.x,
+				grid.y
+			);
+			owner.addChild(new Entity().add(tile));
 
-	public function new() {	}
+			grid.SetTile(tile);	
+			gridBoard[grid.idx][grid.idy].SetTile(tile);
+			tileList.push(tile);
+		}
+	}
 	
-	public function Init(): Entity {
-		m3Entity = new Entity();
+	override public function onAdded() {
+		super.onAdded();
 		
-		var board: M3Board = new M3Board(GRID_SIZE, GRID_ROWS, GRID_COLUMNS);
-		m3Entity.addChild(new Entity().add(board));
+		owner.addChild(gameEntity = new Entity());
 		
-		//for (ii in 0...board.boardGrids.length) {
-			//for (jj in 0...board.boardGrids[ii].length) {
-				//Utils.ConsoleLog(board.boardGrids[ii][jj].GetGridXY().x + " " + board.boardGrids[ii][jj].GetGridXY().y);
-			//}
-		//}
-
-		//var item: M3Item = new M3Item();
-		//item.SetItemSize(20, 20);
-		//item.SetItemColor(0xEACABB);
-		//item.SetItemXY(board.GetGridXY(1, 5).x, board.GetGridXY(1, 5).y);	
-		//m3Entity.addChild(new Entity().add(item));
+		gameDisposer = gameEntity.get(Disposer);
+		if (gameDisposer == null) {
+			gameEntity.add(gameDisposer = new Disposer());
+		}
 		
-		return m3Entity;
+		CreateGrid();
+		CreateTiles();
+		
+		//gridBoard[0][1].dispose();
+		
+		//Utils.ConsoleLog(owner.has(M3Main) + "");
+		//Utils.ConsoleLog(owner.toString());
 	}
 }

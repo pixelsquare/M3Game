@@ -8,9 +8,11 @@ import flambe.Entity;
 import flambe.input.PointerEvent;
 import flambe.math.Rectangle;
 import flambe.System;
+import flambe.asset.AssetPack;
+import flambe.subsystem.StorageSystem;
 
-import m3.names.AssetName;
-import m3.names.ScreenName;
+import m3.name.AssetName;
+import m3.name.ScreenName;
 import m3.screen.GameScreen;
 import m3.core.SceneManager;
 
@@ -23,10 +25,8 @@ import m3.pxlSq.Utils;
 class LevelScreen extends GameScreen
 {
 
-	public function new() 
-	{
-		super();
-		
+	public function new(assetPack:AssetPack, storage:StorageSystem) {
+		super(assetPack, storage);
 	}
 	
 	override public function CreateScreen():Entity 
@@ -39,7 +39,7 @@ class LevelScreen extends GameScreen
 		buttonBG.centerAnchor();
 		buttonEntity.addChild(new Entity().add(buttonBG));
 		
-		var buttonFont: Font = new Font(gameAssets, AssetName.FONT_UNCERTAIN_SANS_32b);
+		var buttonFont: Font = new Font(gameAsset, AssetName.FONT_UNCERTAIN_SANS_32b);
 		var buttonText: TextSprite = new TextSprite(buttonFont, "Continue");
 		buttonText.centerAnchor();
 		buttonEntity.addChild(new Entity().add(buttonText));

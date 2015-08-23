@@ -1,10 +1,12 @@
 package m3.core;
 
+import flambe.asset.AssetPack;
 import flambe.Entity;
 import flambe.scene.Director;
 import flambe.scene.SlideTransition;
 import flambe.scene.FadeTransition;
 import flambe.animation.Ease;
+import flambe.subsystem.StorageSystem;
 import flambe.System;
 import flambe.math.FMath;
 import flambe.display.Sprite;
@@ -13,7 +15,6 @@ import flambe.display.TextSprite;
 
 import m3.screen.GameScreen;
 import m3.screen.PreloadScreen;
-import m3.core.GameData;
 import m3.screen.SplashScreen;
 import m3.screen.main.TitleScreen;
 import m3.screen.main.LevelScreen;
@@ -54,29 +55,29 @@ class SceneManager
 		current = this;
 		gameDirector = director;
 		
-		System.stage.resize.connect(function() {
-			var targetWidth: Int = TARGET_WIDTH;
-			var targetHeight: Int = TARGET_HEIGHT;
-			
-			var scale = FMath.min(System.stage.width / targetWidth, System.stage.height / targetHeight);
-			if (scale > 1) scale = 1;
-			
-			for (screen in gameScreenList) {
-				screen.screenEntity.get(Sprite).setScale(scale).setXY(
-					(System.stage.width - targetWidth * scale) / 2, 
-					(System.stage.height - targetHeight * scale) / 2
-				);
-			}
-		});
+		//System.stage.resize.connect(function() {
+			//var targetWidth: Int = TARGET_WIDTH;
+			//var targetHeight: Int = TARGET_HEIGHT;
+			//
+			//var scale = FMath.min(System.stage.width / targetWidth, System.stage.height / targetHeight);
+			//if (scale > 1) scale = 1;
+			//
+			//for (screen in gameScreenList) {
+				//screen.screenEntity.get(Sprite).setScale(scale).setXY(
+					//(System.stage.width - targetWidth * scale) / 2, 
+					//(System.stage.height - targetHeight * scale) / 2
+				//);
+			//}
+		//});
 	}
 	
-	public function InitializeScreens(): Void {
-		AddGameScreen(gameTitleScreen = new TitleScreen());
-		AddGameScreen(gameLevelScreen = new LevelScreen());
-		AddGameScreen(gameGoalScreen = new GoalScreen());
-		AddGameScreen(gameMainScreen = new MainScreen());
-		AddGameScreen(gamePauseScreen = new PauseScreen());
-		AddGameScreen(gameOverScreen = new GameOverScreen());
+	public function InitScreens(assetPack: AssetPack, storage: StorageSystem): Void {
+		AddGameScreen(gameTitleScreen = new TitleScreen(assetPack, storage));
+		AddGameScreen(gameLevelScreen = new LevelScreen(assetPack, storage));
+		AddGameScreen(gameGoalScreen = new GoalScreen(assetPack, storage));
+		AddGameScreen(gameMainScreen = new MainScreen(assetPack, storage));
+		AddGameScreen(gamePauseScreen = new PauseScreen(assetPack, storage));
+		AddGameScreen(gameOverScreen = new GameOverScreen(assetPack, storage));
 	}
 	
 	private function AddGameScreen(screen: GameScreen) : Void {

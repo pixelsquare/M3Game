@@ -14,9 +14,11 @@ import flambe.script.Sequence;
 import flambe.System;
 import flambe.scene.Scene;
 import flambe.animation.Ease;
+import flambe.asset.AssetPack;
+import flambe.subsystem.StorageSystem;
 
-import m3.names.AssetName;
-import m3.names.ScreenName;
+import m3.name.AssetName;
+import m3.name.ScreenName;
 import m3.screen.GameScreen;
 import m3.core.SceneManager;
 
@@ -34,9 +36,8 @@ class GoalScreen extends GameScreen
 	
 	private var screenDuration: Int;
 	
-	public function new() 
-	{
-		super();
+	public function new(assetPack:AssetPack, storage:StorageSystem) {
+		super(assetPack, storage);
 	}
 	
 	public function Init(duration: Int) {
@@ -48,7 +49,7 @@ class GoalScreen extends GameScreen
 		screenEntity = super.CreateScreen();
 		screenBackground.color = 0x202020;
 		screenBackground.alpha.animate(0, 0.5, 1);
-		RemoveTitleScreen();
+		RemoveTitleText();
 		
 		var goalTitleEntity: Entity = new Entity();
 		var goalTitleBg: FillSprite = new FillSprite(0x202020, System.stage.width, System.stage.height * 0.05);
@@ -56,7 +57,7 @@ class GoalScreen extends GameScreen
 		goalTitleBg.setXY(System.stage.width / 2, System.stage.height * 0.25);
 		goalTitleEntity.addChild(new Entity().add(goalTitleBg));
 		
-		var goalTitleFont: Font = new Font(gameAssets, AssetName.FONT_VANADINE_32);
+		var goalTitleFont: Font = new Font(gameAsset, AssetName.FONT_VANADINE_32);
 		var goalTitleText: TextSprite = new TextSprite(goalTitleFont, "GOAL");
 		goalTitleText.centerAnchor();
 		goalTitleText.setXY(goalTitleBg.getNaturalWidth() * 0.75, goalTitleBg.y._);
@@ -71,7 +72,7 @@ class GoalScreen extends GameScreen
 		goalInfoBg.setXY(System.stage.width / 2, System.stage.height / 2);
 		goalInfoEntity.addChild(new Entity().add(goalInfoBg));
 		
-		var goalInfoFont: Font = new Font(gameAssets, AssetName.FONT_UNCERTAIN_SANS_32);
+		var goalInfoFont: Font = new Font(gameAsset, AssetName.FONT_UNCERTAIN_SANS_32);
 		var goalInfoText: TextSprite = new TextSprite(goalInfoFont, "Info");
 		goalInfoText.centerAnchor();
 		goalInfoText.setXY(goalInfoBg.x._, goalInfoBg.y._);

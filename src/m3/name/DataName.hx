@@ -1,4 +1,4 @@
-package m3.names;
+package m3.name;
 
 /**
  * ...

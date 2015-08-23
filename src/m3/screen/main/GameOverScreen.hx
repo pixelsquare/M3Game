@@ -5,9 +5,11 @@ import flambe.display.TextSprite;
 import flambe.Entity;
 import flambe.System;
 import flambe.scene.Scene;
+import flambe.asset.AssetPack;
+import flambe.subsystem.StorageSystem;
 
-import m3.names.AssetName;
-import m3.names.ScreenName;
+import m3.name.AssetName;
+import m3.name.ScreenName;
 import m3.screen.GameScreen;
 /**
  * ...
@@ -16,10 +18,8 @@ import m3.screen.GameScreen;
 class GameOverScreen extends GameScreen
 {
 
-	public function new() 
-	{
-		super();
-		
+	public function new(assetPack:AssetPack, storage:StorageSystem) {
+		super(assetPack, storage);
 	}
 	
 	override public function CreateScreen():Entity 
