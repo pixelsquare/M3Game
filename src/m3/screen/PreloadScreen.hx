@@ -30,7 +30,7 @@ class PreloadScreen extends GameScreen
 	override public function CreateScreen(): Entity {
 		screenEntity = super.CreateScreen();
 		screenBackground.color = 0x202020;
-		RemoveTitleText();
+		HideTitleText();
 		
 		var loadingEntity: Entity = new Entity();
 		var loadingFont: Font = new Font(gameAsset, AssetName.FONT_VANADINE_32);

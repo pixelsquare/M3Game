@@ -8,19 +8,15 @@ import m3.pxlSq.Utils;
  */
 class M3Grid extends M3Element implements IGrid
 {
-	public var id(default, null): Int;
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
 	
 	private var color: Int;
-	private var gridTile: M3Tile;
-	
 	private var gridSquare: FillSprite;
 	
 	public function new(color: Int) {
 		super();
 		
-		this.id = 0;
 		this.idx = 0;
 		this.idy = 0;
 		
@@ -34,12 +30,21 @@ class M3Grid extends M3Element implements IGrid
 		elementEntity.add(gridSquare);
 	}
 	
-	public function SetTile(tile: M3Tile): Void {
-		this.gridTile = tile;
+	public function ShowVisual(): Void {
+		gridSquare.visible = true;
 	}
 	
-	public function IsGridEmpty(): Bool {
-		return gridTile == null;
+	public function HideVisual(): Void {
+		gridSquare.visible = false;
+	}
+	
+	public function SetColor(color: Int): Void {
+		this.color = color;
+		
+		if (gridSquare == null)
+			return;
+			
+		gridSquare.color = this.color;
 	}
 	
 	override public function SetXY(x:Float, y:Float): Void {
@@ -68,25 +73,24 @@ class M3Grid extends M3Element implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
+		gridSquare.setAlpha(this.alpha._);
 		gridSquare.setXY(this.x._, this.y._);
 	}
 	
 	override public function dispose() {
 		super.dispose();
 		
-		elementParent.get(M3Main).gridList[id] = null;
 		elementParent.get(M3Main).gridBoard[idx][idy] = null;
 	}
 	
 	/* INTERFACE m3.main.IGrid */
 	
-	public function SetGridID(id: Int, idx:Int, idy:Int): Void {
-		this.id = id;
+	public function SetGridID(idx:Int, idy:Int): Void {
 		this.idx = idx;
 		this.idy = idy;
 	}
 	
 	public function PrintID(): String {
-		return this.id + " " + this.idx + " " + this.idy;
+		return "ID(" + this.idx + "," + this.idy + ")";
 	}
 }

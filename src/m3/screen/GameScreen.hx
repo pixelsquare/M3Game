@@ -61,8 +61,7 @@ class GameScreen extends DataManager
 		return "";
 	}
 	
-	private function RemoveTitleText(): Void {
-		//screenEntity.remove(screenTitleText);
-		screenEntity.removeChild(new Entity().add(screenTitleText));
+	private function HideTitleText(): Void {
+		screenTitleText.visible = false;
 	}
 }

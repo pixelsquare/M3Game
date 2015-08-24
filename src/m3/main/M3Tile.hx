@@ -9,6 +9,7 @@ import flambe.script.Script;
 import flambe.script.Sequence;
 import m3.pxlSq.Utils;
 import flambe.animation.Ease;
+import m3.main.GameData;
 
 /**
  * ...
@@ -16,22 +17,22 @@ import flambe.animation.Ease;
  */
 class M3Tile extends M3Element implements IGrid
 {
-	public var id(default, null): Int;
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
 	
 	private var color: Int;
 
 	private var tileSquare: FillSprite;
+	private var fillCount: Int;
 	
 	public function new(color: Int ) {
 		super();
 		
-		this.id = 0;
 		this.idx = 0;
 		this.idy = 0;
 		
 		this.color = color;
+		this.fillCount = 0;
 	}
 	
 	public function DrawTile(): Void {
@@ -45,27 +46,75 @@ class M3Tile extends M3Element implements IGrid
 		});
 	}
 	
-	public function UpdatePosition(): Void {
-		if ((idy + 1) > 9)
+	public function UpdateDropPosition(): Void {
+		if ((idy + 1) >= GameData.GRID_COLS) 
 			return;
 		
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
-		var nextTile: M3Grid = m3Main.gridBoard[idx][idy + 1];
-		if (nextTile == null)
+		var nextTile: M3Block = m3Main.gridBoard[idx][idy + 1];
+		if (nextTile == null || nextTile.IsBlocked())
 			return;
 			
-		if (nextTile.IsGridEmpty()) {
-			//Utils.ConsoleLog(PrintID() + " | " + nextTile.PrintID());
-			elementParent.get(M3Main).gridList[id].SetTile(null);
-			elementParent.get(M3Main).gridBoard[idx][idy].SetTile(null);
-					
+		if (nextTile.IsBlockEmpty()) {
+			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
+			elementParent.get(M3Main).gridBoard[idx][idy + 1].SetBlockTile(this);
 			this.y.animateTo(nextTile.y._, 0.5);
-			SetGridID(nextTile.id, nextTile.idx, nextTile.idy);
-
-			elementParent.get(M3Main).gridList[nextTile.id].SetTile(this);
-			elementParent.get(M3Main).gridBoard[idx][idy + 1].SetTile(this);
+			SetGridID(nextTile.idx, nextTile.idy);
 		}
+	}
+	
+	public function UpdateFillRight(): Void {
+		if ((idx + 1) >= GameData.GRID_ROWS || (idy + 1) >= GameData.GRID_COLS)
+			return;
+			
+		if (fillCount == 1)
+			return;
+		
+		var m3Main: M3Main = elementParent.get(M3Main);
+		
+		var rightTile: M3Block = m3Main.gridBoard[idx + 1][idy];
+		var bottomRightTile: M3Block = m3Main.gridBoard[idx + 1][idy + 1];
+		if (bottomRightTile == null || bottomRightTile.IsBlocked())
+			return;
+		
+		if (bottomRightTile.IsBlockEmpty() && rightTile.IsBlocked()) {
+			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
+			elementParent.get(M3Main).gridBoard[idx + 1][idy + 1].SetBlockTile(this);
+			this.x.animateTo(bottomRightTile.x._, 0.5);
+			this.y.animateTo(bottomRightTile.y._, 0.5);
+			SetGridID(bottomRightTile.idx, bottomRightTile.idy);
+			m3Main.SetTilesFillCount(1);
+		}
+	}
+	
+	public function UpdateFillLeft(): Void {
+		if ((idx - 1) < 0 || (idy - 1) < 0) {
+			return;
+		}
+
+		if (fillCount == 0)
+			return;
+			
+		var m3Main: M3Main = elementParent.get(M3Main);
+		
+		var leftTile: M3Block = m3Main.gridBoard[idx - 1][idy];
+		var bottomLeftTile: M3Block = m3Main.gridBoard[idx - 1][idy + 1];
+		if (bottomLeftTile == null || bottomLeftTile.IsBlocked())
+			return;
+			
+		if (bottomLeftTile.IsBlockEmpty() && leftTile.IsBlocked()) {
+			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
+			elementParent.get(M3Main).gridBoard[idx - 1][idy + 1].SetBlockTile(this);
+			this.x.animateTo(bottomLeftTile.x._, 0.5);
+			this.y.animateTo(bottomLeftTile.y._, 0.5);
+			SetGridID(bottomLeftTile.idx, bottomLeftTile.idy);
+			m3Main.SetTilesFillCount(0);
+		}
+	}
+	
+	public function SetFillCount(count: Int): Void {
+		this.fillCount = count;
 	}
 	
 	override public function SetXY(x:Float, y:Float): Void {
@@ -94,26 +143,26 @@ class M3Tile extends M3Element implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
+		tileSquare.setAlpha(this.alpha._);
 		tileSquare.setXY(this.x._, this.y._);
-		UpdatePosition();
+		UpdateDropPosition();
+		UpdateFillRight();
+		UpdateFillLeft();
 	}
 
 	override public function dispose() {
 		super.dispose();
-		elementParent.get(M3Main).tileList[id] = null;
-		elementParent.get(M3Main).gridList[id].SetTile(null);
-		elementParent.get(M3Main).gridBoard[idx][idy].SetTile(null);
+		elementParent.get(M3Main).RemoveTile(this);
 	}
 	
 	/* INTERFACE m3.main.IGrid */
 	
-	public function SetGridID(id: Int, idx:Int, idy:Int): Void {
-		this.id = id;
+	public function SetGridID(idx:Int, idy:Int): Void {
 		this.idx = idx;
 		this.idy = idy;
-	}	
+	}
 	
 	public function PrintID(): String {
-		return this.id + " " + this.idx + " " + this.idy;
+		return "ID(" + this.idx + "," + this.idy + ")";
 	}
 }

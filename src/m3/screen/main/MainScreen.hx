@@ -36,7 +36,7 @@ class MainScreen extends GameScreen
 	override public function CreateScreen(): Entity {
 		screenEntity = super.CreateScreen();
 		screenBackground.color = 0x202020;
-		RemoveTitleText();
+		HideTitleText();
 		
 		screenEntity.addChild(new Entity().add(GameManager.current.GetM3Main()));
 		

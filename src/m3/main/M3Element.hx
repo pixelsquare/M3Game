@@ -14,6 +14,8 @@ import flambe.animation.AnimatedFloat;
  */
 class M3Element extends Component
 {
+	public var alpha(default, null): AnimatedFloat;
+	
 	public var x(default, null): AnimatedFloat;
 	public var y(default, null): AnimatedFloat;
 	
@@ -25,11 +27,16 @@ class M3Element extends Component
 	private var elementDisposer: Disposer;
 	
 	public function new() {
+		this.alpha = new AnimatedFloat(1);
 		this.x = new AnimatedFloat(0.0);
 		this.y = new AnimatedFloat(0.0);
 		
 		this.width = 0;
 		this.height = 0;
+	}
+	
+	public function SetAlpha(alpha: Float): Void {
+		this.alpha._ = alpha;
 	}
 	
 	public function SetXY(x: Float, y: Float): Void {
@@ -62,6 +69,7 @@ class M3Element extends Component
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
+		this.alpha.update(dt);
 		this.x.update(dt);
 		this.y.update(dt);
 	}

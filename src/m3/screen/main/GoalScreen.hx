@@ -49,7 +49,7 @@ class GoalScreen extends GameScreen
 		screenEntity = super.CreateScreen();
 		screenBackground.color = 0x202020;
 		screenBackground.alpha.animate(0, 0.5, 1);
-		RemoveTitleText();
+		HideTitleText();
 		
 		var goalTitleEntity: Entity = new Entity();
 		var goalTitleBg: FillSprite = new FillSprite(0x202020, System.stage.width, System.stage.height * 0.05);
