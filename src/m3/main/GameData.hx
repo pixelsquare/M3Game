@@ -13,6 +13,13 @@ class GameData
 	public static inline var GRID_COLOR_1: Int = 0xFFFFFF;
 	public static inline var GRID_COLOR_2: Int = 0xC1C1C1;
 	
-	public static inline var TILE_SIZE = 20;
+	public static inline var TILE_SIZE: Int = 20;
 	public static inline var TILE_COLOR: Int = 0x66CD00;
+	
+	public static inline var TILE_TYPE_1_COLOR: Int = 0xFF0000;
+	public static inline var TILE_TYPE_2_COLOR: Int = 0x00FF00;
+	public static inline var TILE_TYPE_3_COLOR: Int = 0x0000FF;
+	public static inline var TILE_TYPE_4_COLOR: Int = 0xFFFF00;
+	public static inline var TILE_TYPE_5_COLOR: Int = 0xFF00FF;
+	public static inline var TILE_TYPE_6_COLOR: Int = 0x00FFFF;
 }

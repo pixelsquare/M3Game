@@ -23,6 +23,7 @@ class M3Main extends Component
 	public var tileList(default, null): Array<M3Tile>;
 	
 	private var tileEntity: Entity;
+	private var tileTypes: Array<M3Tile>;
 	
 	public function new(data: DataManager) { }
 	
@@ -57,6 +58,7 @@ class M3Main extends Component
 		}		
 		
 		gridBoard[1][1].SetBlocked();
+		//gridBoard[1][3].SetBlocked();
 		gridBoard[8][1].SetBlocked();
 	}
 	
@@ -93,7 +95,11 @@ class M3Main extends Component
 		}
 	}
 	
-	public function CreateTile(spawner: M3Spawner, grid: M3Block): Void {
+	public function CreateTile(spawner: M3Spawner, grid: M3Block): M3Tile {
+		if (tileList == null) {
+			tileList = new Array<M3Tile>();
+		}
+		
 		var tile: M3Tile = new M3Tile(GameData.TILE_COLOR);
 		tile.SetGridID(grid.idx, grid.idy);
 		tile.SetSize(GameData.TILE_SIZE, GameData.TILE_SIZE);
@@ -104,8 +110,41 @@ class M3Main extends Component
 		grid.SetBlockTile(tile);
 		tileList.push(tile);
 		
-		tile.alpha.animate(0, 1, 0.5);
-		tile.y.animateTo(grid.y._, 0.5);
+		return tile;
+	}
+	
+	public function GenerateTileTypes(): Void {
+		tileTypes = new Array<M3Tile>();
+		//Utils.ConsoleLog(TileType.getConstructors()[0] + "");
+		for (ii in 0...TileType.getConstructors().length) {
+			var tile: M3Tile = new M3Tile(GetTileColor(Type.createEnum(TileType, TileType.getConstructors()[ii])));
+			tileTypes.push(tile);
+		}
+	}
+	
+	public function GetTileColor(type: TileType): Int {
+		if (type == TileType.Tile_Type_1) {
+			return GameData.TILE_TYPE_1_COLOR;
+		}
+		else if (type == TileType.Tile_Type_1) {
+			return GameData.TILE_TYPE_1_COLOR;
+		}
+		else if (type == TileType.Tile_Type_2) {
+			return GameData.TILE_TYPE_2_COLOR;
+		}
+		else if (type == TileType.Tile_Type_3) {
+			return GameData.TILE_TYPE_3_COLOR;
+		}
+		else if (type == TileType.Tile_Type_4) {
+			return GameData.TILE_TYPE_4_COLOR;
+		}
+		else if (type == TileType.Tile_Type_5) {
+			return GameData.TILE_TYPE_5_COLOR;
+		}
+		else if (type == TileType.Tile_Type_6) {
+			return GameData.TILE_TYPE_6_COLOR;
+		}
+		return 0;
 	}
 	
 	public function RemoveTile(gridTile: M3Tile): Void {	
@@ -116,6 +155,16 @@ class M3Main extends Component
 				tileList.remove(tile);
 			}
 		}
+	}
+	
+	public function GetTile(idx: Int, idy: Int): M3Tile {
+		for (tile in tileList) {
+			if (tile.idx == idx && tile.idy == idy) {
+				return tile;
+			}
+		}
+		
+		return null;
 	}
 	
 	public function GetTileCount(): Int {
@@ -131,6 +180,7 @@ class M3Main extends Component
 	}
 	
 	public function SetTilesFillCount(count: Int): Void {
+		//Utils.ConsoleLog(count +"");
 		for (tile in tileList) {
 			if (tile != null) {
 				tile.SetFillCount(count);
@@ -149,7 +199,16 @@ class M3Main extends Component
 		}
 		
 		CreateGrid();
-		CreateTiles();
+		//CreateTiles();
 		CreateSpawners();
+		GenerateTileTypes();
 	}
+	
+	//override public function onUpdate(dt:Float) {
+		//super.onUpdate(dt);
+		//if (tileList.length > 0) {
+			//Utils.ConsoleLog(tileList[0].fillCount + "");
+			////Utils.ConsoleLog(gridBoard[1][3].IsBlockEmpty());
+		//}
+	//}
 }

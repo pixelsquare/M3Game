@@ -5,8 +5,10 @@ import flambe.Entity;
 import flambe.input.PointerEvent;
 import flambe.script.AnimateTo;
 import flambe.script.CallFunction;
+import flambe.script.Parallel;
 import flambe.script.Script;
 import flambe.script.Sequence;
+import haxe.Timer;
 import m3.pxlSq.Utils;
 import flambe.animation.Ease;
 import m3.main.GameData;
@@ -19,11 +21,12 @@ class M3Tile extends M3Element implements IGrid
 {
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
+	public var fillCount(default, null): Int;
 	
 	private var color: Int;
 
 	private var tileSquare: FillSprite;
-	private var fillCount: Int;
+	private var isAnimating: Bool;
 	
 	public function new(color: Int ) {
 		super();
@@ -42,14 +45,31 @@ class M3Tile extends M3Element implements IGrid
 		elementEntity.add(tileSquare);
 		
 		tileSquare.pointerUp.connect(function(event: PointerEvent) {
+			if (isAnimating)
+				return;
+				
 			dispose();
+			
+			//var m3Main: M3Main = elementParent.get(M3Main);
+			//m3Main.GetTile(idx + 1, idy).dispose();
+			//m3Main.GetTile(idx - 1, idy).dispose();
+			
+			//if (fillCount == 0) {
+				//m3Main.SetTilesFillCount(1);
+			//}
+			//if (fillCount == 1) {
+				//m3Main.SetTilesFillCount(0);
+			//}
 		});
 	}
 	
 	public function UpdateDropPosition(): Void {
 		if ((idy + 1) >= GameData.GRID_COLS) 
 			return;
-		
+			
+		if (isAnimating)
+			return;
+			
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
 		var nextTile: M3Block = m3Main.gridBoard[idx][idy + 1];
@@ -58,9 +78,23 @@ class M3Tile extends M3Element implements IGrid
 			
 		if (nextTile.IsBlockEmpty()) {
 			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
-			elementParent.get(M3Main).gridBoard[idx][idy + 1].SetBlockTile(this);
-			this.y.animateTo(nextTile.y._, 0.5);
-			SetGridID(nextTile.idx, nextTile.idy);
+			elementParent.get(M3Main).gridBoard[idx][idy + 1].SetBlockTile(this);	
+			isAnimating = true;
+			
+			var script: Script = new Script();
+			script.run(new Sequence([
+				new AnimateTo(this.y, nextTile.y._, 0.2),
+				new CallFunction(function() {
+					SetGridID(nextTile.idx, nextTile.idy);
+					elementEntity.removeChild(new Entity().add(script));
+					script.dispose();
+					isAnimating = false;
+				})
+			]));
+			elementEntity.addChild(new Entity().add(script));
+			
+			//this.y.animateTo(nextTile.y._, 0.2);
+			//SetGridID(nextTile.idx, nextTile.idy);
 		}
 	}
 	
@@ -68,49 +102,90 @@ class M3Tile extends M3Element implements IGrid
 		if ((idx + 1) >= GameData.GRID_ROWS || (idy + 1) >= GameData.GRID_COLS)
 			return;
 			
-		if (fillCount == 1)
+		if (isAnimating || fillCount == 1)
 			return;
 		
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
-		var rightTile: M3Block = m3Main.gridBoard[idx + 1][idy];
-		var bottomRightTile: M3Block = m3Main.gridBoard[idx + 1][idy + 1];
-		if (bottomRightTile == null || bottomRightTile.IsBlocked())
-			return;
+		var rightBlock: M3Block = m3Main.gridBoard[idx + 1][idy];
+		var bottomBlock: M3Block = m3Main.gridBoard[idx][9];
 		
-		if (bottomRightTile.IsBlockEmpty() && rightTile.IsBlocked()) {
-			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
-			elementParent.get(M3Main).gridBoard[idx + 1][idy + 1].SetBlockTile(this);
-			this.x.animateTo(bottomRightTile.x._, 0.5);
-			this.y.animateTo(bottomRightTile.y._, 0.5);
-			SetGridID(bottomRightTile.idx, bottomRightTile.idy);
-			m3Main.SetTilesFillCount(1);
-		}
+		if (rightBlock == null || bottomBlock == null)
+			return;
+			
+		if (rightBlock.IsBlocked() && !bottomBlock.IsBlockEmpty()) {
+			var bottomRight: M3Block = m3Main.gridBoard[idx + 1][idy + 1];
+
+			if (bottomRight == null)
+				return;
+				
+			if (bottomRight.IsBlockEmpty() && !bottomRight.IsBlocked()) {
+				elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
+				elementParent.get(M3Main).gridBoard[idx + 1][idy + 1].SetBlockTile(this);
+				isAnimating = true;
+				
+				var script: Script = new Script();
+				script.run(new Sequence([
+					new Parallel([
+						new AnimateTo(this.x, bottomRight.x._, 0.2),
+						new AnimateTo(this.y, bottomRight.y._, 0.2)
+					]),
+					new CallFunction(function() {
+						SetGridID(bottomRight.idx, bottomRight.idy);
+						elementEntity.removeChild(new Entity().add(script));
+						script.dispose();
+						m3Main.SetTilesFillCount(1);
+						isAnimating = false;
+					})
+				]));
+				elementEntity.addChild(new Entity().add(script));
+			}
+		}	
 	}
 	
 	public function UpdateFillLeft(): Void {
-		if ((idx - 1) < 0 || (idy - 1) < 0) {
-			return;
-		}
-
-		if (fillCount == 0)
+		if ((idx - 1) < 0 || (idy - 1) < 0)
 			return;
 			
+		if (isAnimating || fillCount == 0)
+			return;
+		
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
-		var leftTile: M3Block = m3Main.gridBoard[idx - 1][idy];
-		var bottomLeftTile: M3Block = m3Main.gridBoard[idx - 1][idy + 1];
-		if (bottomLeftTile == null || bottomLeftTile.IsBlocked())
+		var leftBlock: M3Block = m3Main.gridBoard[idx - 1][idy];
+		var bottomBlock: M3Block = m3Main.gridBoard[idx][9];
+		
+		if (leftBlock == null || bottomBlock == null)
 			return;
 			
-		if (bottomLeftTile.IsBlockEmpty() && leftTile.IsBlocked()) {
-			elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
-			elementParent.get(M3Main).gridBoard[idx - 1][idy + 1].SetBlockTile(this);
-			this.x.animateTo(bottomLeftTile.x._, 0.5);
-			this.y.animateTo(bottomLeftTile.y._, 0.5);
-			SetGridID(bottomLeftTile.idx, bottomLeftTile.idy);
-			m3Main.SetTilesFillCount(0);
-		}
+		if (leftBlock.IsBlocked() && !bottomBlock.IsBlockEmpty()) {
+			var bottomLeft: M3Block = m3Main.gridBoard[idx - 1][idy + 1];
+
+			if (bottomLeft == null)
+				return;
+				
+			if (bottomLeft.IsBlockEmpty() && !bottomLeft.IsBlocked()) {
+				elementParent.get(M3Main).gridBoard[idx][idy].SetBlockTile(null);
+				elementParent.get(M3Main).gridBoard[idx - 1][idy + 1].SetBlockTile(this);
+				isAnimating = true;
+				
+				var script: Script = new Script();
+				script.run(new Sequence([
+					new Parallel([
+						new AnimateTo(this.x, bottomLeft.x._, 0.2),
+						new AnimateTo(this.y, bottomLeft.y._, 0.2)
+					]),
+					new CallFunction(function() {
+						SetGridID(bottomLeft.idx, bottomLeft.idy);
+						elementEntity.removeChild(new Entity().add(script));
+						script.dispose();
+						m3Main.SetTilesFillCount(0);
+						isAnimating = false;
+					})
+				]));
+				elementEntity.addChild(new Entity().add(script));
+			}
+		}	
 	}
 	
 	public function SetFillCount(count: Int): Void {
@@ -145,9 +220,12 @@ class M3Tile extends M3Element implements IGrid
 		super.onUpdate(dt);
 		tileSquare.setAlpha(this.alpha._);
 		tileSquare.setXY(this.x._, this.y._);
+		
+		
 		UpdateDropPosition();
 		UpdateFillRight();
 		UpdateFillLeft();
+		
 	}
 
 	override public function dispose() {

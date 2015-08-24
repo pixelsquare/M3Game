@@ -17,7 +17,7 @@ class M3Spawner extends M3Element implements IGrid
 		super();
 		
 		this.idx = 0;
-		this.idy = 0;		
+		this.idy = 0;	
 	}
 	
 	public function Draw(): Void {
@@ -28,15 +28,16 @@ class M3Spawner extends M3Element implements IGrid
 	}
 	
 	public function SpawnTiles(): Void {
-		var m3Main: M3Main = elementParent.get(M3Main);
+		var m3Main: M3Main = elementParent.get(M3Main);	
 		
 		var firstBlock: M3Block = m3Main.gridBoard[idx][idy];
 		if (firstBlock == null || firstBlock.IsBlocked())
 			return;
 			
 		if (firstBlock.IsBlockEmpty()) {
-			//Utils.ConsoleLog(firstBlock.PrintID());
-			m3Main.CreateTile(this, firstBlock);
+			var tile: M3Tile = m3Main.CreateTile(this, firstBlock);
+			tile.alpha.animate(0, 1, 0.1);
+			tile.y.animateTo(firstBlock.y._, 0.2);
 		}
 	}
 	
