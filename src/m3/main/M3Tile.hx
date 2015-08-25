@@ -3,6 +3,7 @@ package m3.main;
 import flambe.display.FillSprite;
 import flambe.Entity;
 import flambe.input.PointerEvent;
+import flambe.math.Point;
 import flambe.script.AnimateTo;
 import flambe.script.CallFunction;
 import flambe.script.Parallel;
@@ -12,6 +13,7 @@ import haxe.Timer;
 import m3.pxlSq.Utils;
 import flambe.animation.Ease;
 import m3.main.GameData;
+import flambe.System;
 
 /**
  * ...
@@ -22,17 +24,24 @@ class M3Tile extends M3Element implements IGrid
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
 	public var fillCount(default, null): Int;
+	public var isAnimating: Bool;
+	
+	public var data(default, set): M3TileData;
+	public function set_data(newData: M3TileData) {
+		color = newData.TileColor;
+		return data = newData;
+	}
 	
 	private var color: Int;
 
 	private var tileSquare: FillSprite;
-	private var isAnimating: Bool;
 	
 	public function new(color: Int ) {
 		super();
 		
 		this.idx = 0;
 		this.idy = 0;
+		this.data = new M3TileData();
 		
 		this.color = color;
 		this.fillCount = 0;
@@ -44,12 +53,67 @@ class M3Tile extends M3Element implements IGrid
 		tileSquare.centerAnchor();
 		elementEntity.add(tileSquare);
 		
+		//var pointerIsDown: Bool = false;
+		//var startPoint: Point = new Point(0, 0);
+		//var endPoint: Point = new Point(0, 0);
+		//
+		//System.pointer.down.connect(function(event: PointerEvent) {
+			//startPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
+			//pointerIsDown = true;
+		//});
+		//
+		//System.pointer.up.connect(function(event: PointerEvent) {
+			//if (!pointerIsDown)
+				//return;
+				//
+			//endPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
+			//
+			//var direction: Point = new Point(
+				//endPoint.x - startPoint.x,
+				//endPoint.y - startPoint.y
+			//);
+			//
+			//if (Math.abs(direction.x) > Math.abs(direction.y)) {
+				//if (direction.x > 0) {
+//
+				//}
+				//else {
+					//
+				//}
+			//}
+			//else {
+				//if (direction.y > 0) {
+					//
+				//}
+				//else {
+					//
+				//}
+			//}
+		//});
+		
 		tileSquare.pointerUp.connect(function(event: PointerEvent) {
-			if (isAnimating)
-				return;
-				
-			dispose();
+			SwapTo(M3SwapDirection.Right);
 			
+			//if (isAnimating)
+				//return;
+		//
+			//var m3Main: M3Main = elementParent.get(M3Main);
+			//
+			//var curBlock: M3Block = m3Main.gridBoard[idx][idy];
+			//var rightBlock: M3Block = m3Main.gridBoard[idx + 1][idy];
+			//
+			//if (rightBlock == null || rightBlock.IsBlocked())
+				//return;
+				//
+			//if (!rightBlock.IsBlockEmpty()) {
+				//M3Utils.SwapTiles(curBlock, rightBlock, elementEntity, function() {
+					//// If invalid move
+					//M3Utils.SwapTiles(rightBlock, curBlock, elementEntity);
+				//});
+			//}
+				
+			//dispose();
+			//
 			//var m3Main: M3Main = elementParent.get(M3Main);
 			//m3Main.GetTile(idx + 1, idy).dispose();
 			//m3Main.GetTile(idx - 1, idy).dispose();
@@ -60,6 +124,31 @@ class M3Tile extends M3Element implements IGrid
 			//if (fillCount == 1) {
 				//m3Main.SetTilesFillCount(0);
 			//}
+		});
+	}
+	
+	public function SwapTo(swapDir: M3SwapDirection): Void {
+		if (isAnimating)
+			return;
+			
+		var m3Main: M3Main = elementParent.get(M3Main);
+		var curBlock: M3Block = m3Main.gridBoard[idx][idy];
+		var nextBlock: M3Block = M3Utils.GetBlockToSwap(this, m3Main, swapDir);
+		M3Utils.SwapTiles(curBlock, nextBlock, elementEntity, function() {
+			
+			var blocks: Array<M3Block> = M3Utils.CheckHorizontal(this, m3Main);
+			//if (blocks != null) {
+				//for (block in blocks) {
+					//Utils.ConsoleLog(block.PrintID());
+				//}
+			//}
+			Utils.ConsoleLog(blocks.length + "");
+			//if (blocks.length == 2) {
+				//Utils.ConsoleLog("MATCH!");
+				//return;
+			//}
+			// If invalid move
+			M3Utils.SwapTiles(nextBlock, curBlock, elementEntity);
 		});
 	}
 	
@@ -108,7 +197,7 @@ class M3Tile extends M3Element implements IGrid
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
 		var rightBlock: M3Block = m3Main.gridBoard[idx + 1][idy];
-		var bottomBlock: M3Block = m3Main.gridBoard[idx][9];
+		var bottomBlock: M3Block = m3Main.gridBoard[idx][M3Utils.GetBottomTileIndx(m3Main, this) - 1];
 		
 		if (rightBlock == null || bottomBlock == null)
 			return;
@@ -153,7 +242,7 @@ class M3Tile extends M3Element implements IGrid
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
 		var leftBlock: M3Block = m3Main.gridBoard[idx - 1][idy];
-		var bottomBlock: M3Block = m3Main.gridBoard[idx][9];
+		var bottomBlock: M3Block = m3Main.gridBoard[idx][M3Utils.GetBottomTileIndx(m3Main, this) - 1];
 		
 		if (leftBlock == null || bottomBlock == null)
 			return;
@@ -222,9 +311,9 @@ class M3Tile extends M3Element implements IGrid
 		tileSquare.setXY(this.x._, this.y._);
 		
 		
-		UpdateDropPosition();
-		UpdateFillRight();
-		UpdateFillLeft();
+		//UpdateDropPosition();
+		//UpdateFillRight();
+		//UpdateFillLeft();
 		
 	}
 

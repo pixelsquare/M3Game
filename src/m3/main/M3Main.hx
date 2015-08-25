@@ -3,12 +3,15 @@ import flambe.Component;
 import flambe.display.Sprite;
 import flambe.Disposer;
 import flambe.Entity;
+import flambe.input.KeyboardEvent;
+import flambe.input.PointerEvent;
 import flambe.math.Rectangle;
 import m3.core.DataManager;
 import m3.pxlSq.Utils;
 import flambe.System;
 import m3.core.GameManager;
 import m3.main.GameData;
+import flambe.input.Key;
 
 /**
  * ...
@@ -23,7 +26,7 @@ class M3Main extends Component
 	public var tileList(default, null): Array<M3Tile>;
 	
 	private var tileEntity: Entity;
-	private var tileTypes: Array<M3Tile>;
+	private var tileDataTypes: Array<M3TileData>;
 	
 	public function new(data: DataManager) { }
 	
@@ -57,9 +60,10 @@ class M3Main extends Component
 			i--;
 		}		
 		
-		gridBoard[1][1].SetBlocked();
+		//gridBoard[1][1].SetBlocked();
 		//gridBoard[1][3].SetBlocked();
-		gridBoard[8][1].SetBlocked();
+		//gridBoard[8][1].SetBlocked();
+		//gridBoard[0][9].SetBlocked();
 	}
 	
 	public function CreateTiles(): Void {
@@ -69,8 +73,12 @@ class M3Main extends Component
 			for (grid in gridBoard[ii]) {
 				if (grid.IsBlocked())
 					continue;
-				
+					
+				var rand: Int = Math.round(Math.random() * Type.allEnums(TileType).length);
+				var randIndx: Int = rand % (Type.allEnums(TileType).length - 3);
+
 				var tile: M3Tile = new M3Tile(GameData.TILE_COLOR);
+				tile.data = tileDataTypes[randIndx];
 				tile.SetGridID(grid.idx, grid.idy);
 				tile.SetSize(GameData.TILE_SIZE, GameData.TILE_SIZE);
 				tile.SetParent(owner);
@@ -100,7 +108,11 @@ class M3Main extends Component
 			tileList = new Array<M3Tile>();
 		}
 		
+		var rand: Int = Math.round(Math.random() * Type.allEnums(TileType).length);
+		var randIndx: Int = rand % Type.allEnums(TileType).length;
+		
 		var tile: M3Tile = new M3Tile(GameData.TILE_COLOR);
+		tile.data = tileDataTypes[randIndx];
 		tile.SetGridID(grid.idx, grid.idy);
 		tile.SetSize(GameData.TILE_SIZE, GameData.TILE_SIZE);
 		tile.SetParent(owner);
@@ -114,37 +126,13 @@ class M3Main extends Component
 	}
 	
 	public function GenerateTileTypes(): Void {
-		tileTypes = new Array<M3Tile>();
-		//Utils.ConsoleLog(TileType.getConstructors()[0] + "");
-		for (ii in 0...TileType.getConstructors().length) {
-			var tile: M3Tile = new M3Tile(GetTileColor(Type.createEnum(TileType, TileType.getConstructors()[ii])));
-			tileTypes.push(tile);
+		tileDataTypes = new Array<M3TileData>();		
+		for (type in Type.allEnums(TileType)) {
+			var tileData: M3TileData = new M3TileData();
+			tileData.TileDataType = type;
+			tileData.TileColor = M3Utils.GetTileColor(type);
+			tileDataTypes.push(tileData);
 		}
-	}
-	
-	public function GetTileColor(type: TileType): Int {
-		if (type == TileType.Tile_Type_1) {
-			return GameData.TILE_TYPE_1_COLOR;
-		}
-		else if (type == TileType.Tile_Type_1) {
-			return GameData.TILE_TYPE_1_COLOR;
-		}
-		else if (type == TileType.Tile_Type_2) {
-			return GameData.TILE_TYPE_2_COLOR;
-		}
-		else if (type == TileType.Tile_Type_3) {
-			return GameData.TILE_TYPE_3_COLOR;
-		}
-		else if (type == TileType.Tile_Type_4) {
-			return GameData.TILE_TYPE_4_COLOR;
-		}
-		else if (type == TileType.Tile_Type_5) {
-			return GameData.TILE_TYPE_5_COLOR;
-		}
-		else if (type == TileType.Tile_Type_6) {
-			return GameData.TILE_TYPE_6_COLOR;
-		}
-		return 0;
 	}
 	
 	public function RemoveTile(gridTile: M3Tile): Void {	
@@ -198,10 +186,40 @@ class M3Main extends Component
 			gameEntity.add(gameDisposer = new Disposer());
 		}
 		
-		CreateGrid();
-		//CreateTiles();
-		CreateSpawners();
 		GenerateTileTypes();
+		CreateGrid();
+		CreateTiles();
+		//CreateSpawners();
+		
+		//var num: Int = 0;
+		//for (ii in 0...9) {
+			//var tmp: Int = (ii < num) ? (num - ii) - 1 : ii + 1;
+			//Utils.ConsoleLog(tmp + "");
+		//}
+		
+		//var test: Map<Int, Array<M3Block>> = M3Utils.CheckMatchCombo(this);
+		//for (key in test.keys()) {
+			//Utils.ConsoleLog(key + " " + test.get(key).length + "");
+		//}
+		
+		System.keyboard.down.connect(function(event: KeyboardEvent) {
+			if (event.key == Key.Space) {
+				for (key in M3Utils.CheckMatchCombo(this).keys()) {
+					var a: Array<M3Block> = M3Utils.CheckMatchCombo(this).get(key);
+					for (b in a) {
+						b.dispose();
+					}
+				}
+			}
+		});
+		
+		//var tmp: Map<Int, String> = new Map<Int, String>();
+		//tmp.set(0, "ASD");
+		//tmp.set(1, "QWE");
+		//
+		//for (key in tmp.keys()) {
+			//Utils.ConsoleLog(tmp.get(key));
+		//}
 	}
 	
 	//override public function onUpdate(dt:Float) {
