@@ -42,8 +42,8 @@ class Main
 				var gameManager: GameManager = new GameManager(mainPack, System.storage);
 				sceneManager.InitScreens(mainPack, System.storage);
 				//sceneManager.ShowLevelScreen();
-				sceneManager.ShowMainScreen();
-				//sceneManager.ShowScreen(new SplashScreen(preloadPack, 2), true);
+				//sceneManager.ShowMainScreen();
+				sceneManager.ShowScreen(new SplashScreen(preloadPack, 2), true);
 			});
 			
 			sceneManager.ShowScreen(new PreloadScreen(preloadPack, promise));

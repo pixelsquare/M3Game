@@ -12,6 +12,7 @@ import flambe.script.Repeat;
 import flambe.script.Script;
 import flambe.script.Sequence;
 import flambe.util.Signal1;
+import format.swf.Data.SCRIndex;
 import m3.core.DataManager;
 import m3.pxlSq.Utils;
 import flambe.System;
@@ -277,7 +278,16 @@ class M3Main extends Component
 			curTile = null;
 		});
 		
-		SetStageDirty();
+		var script: Script = new Script();
+		script.run(new Sequence([
+			new Delay(1),
+			new CallFunction(function() {
+				SetStageDirty();
+				gameEntity.removeChild(new Entity().add(script));
+				script.dispose();
+			})
+		]));
+		gameEntity.addChild(new Entity().add(script));
 	}
 	
 	public function SetStageDirty(): Void {

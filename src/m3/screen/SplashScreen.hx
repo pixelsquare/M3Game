@@ -53,7 +53,8 @@ class SplashScreen extends GameScreen
 		script.run(new Sequence([
 			new Delay(this.duration),
 			new CallFunction(function() {
-				SceneManager.current.ShowTitleScreen(true);
+				SceneManager.current.ShowMainScreen(true);
+				//SceneManager.current.ShowTitleScreen(true);
 			})
 		]));
 		screenEntity.add(script);
