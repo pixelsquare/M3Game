@@ -19,7 +19,7 @@ import flambe.System;
  * ...
  * @author Anthony Ganzon
  */
-class M3Tile extends M3Element implements IGrid
+class M3Tile extends M3TileTouch implements IGrid
 {
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
@@ -52,79 +52,6 @@ class M3Tile extends M3Element implements IGrid
 		tileSquare.setXY(this.x._, this.y._);
 		tileSquare.centerAnchor();
 		elementEntity.add(tileSquare);
-		
-		//var pointerIsDown: Bool = false;
-		//var startPoint: Point = new Point(0, 0);
-		//var endPoint: Point = new Point(0, 0);
-		//
-		//System.pointer.down.connect(function(event: PointerEvent) {
-			//startPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
-			//pointerIsDown = true;
-		//});
-		//
-		//System.pointer.up.connect(function(event: PointerEvent) {
-			//if (!pointerIsDown)
-				//return;
-				//
-			//endPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
-			//
-			//var direction: Point = new Point(
-				//endPoint.x - startPoint.x,
-				//endPoint.y - startPoint.y
-			//);
-			//
-			//if (Math.abs(direction.x) > Math.abs(direction.y)) {
-				//if (direction.x > 0) {
-//
-				//}
-				//else {
-					//
-				//}
-			//}
-			//else {
-				//if (direction.y > 0) {
-					//
-				//}
-				//else {
-					//
-				//}
-			//}
-		//});
-		
-		tileSquare.pointerUp.connect(function(event: PointerEvent) {
-			SwapTo(M3SwapDirection.Right);
-			
-			//if (isAnimating)
-				//return;
-		//
-			//var m3Main: M3Main = elementParent.get(M3Main);
-			//
-			//var curBlock: M3Block = m3Main.gridBoard[idx][idy];
-			//var rightBlock: M3Block = m3Main.gridBoard[idx + 1][idy];
-			//
-			//if (rightBlock == null || rightBlock.IsBlocked())
-				//return;
-				//
-			//if (!rightBlock.IsBlockEmpty()) {
-				//M3Utils.SwapTiles(curBlock, rightBlock, elementEntity, function() {
-					//// If invalid move
-					//M3Utils.SwapTiles(rightBlock, curBlock, elementEntity);
-				//});
-			//}
-				
-			//dispose();
-			//
-			//var m3Main: M3Main = elementParent.get(M3Main);
-			//m3Main.GetTile(idx + 1, idy).dispose();
-			//m3Main.GetTile(idx - 1, idy).dispose();
-			
-			//if (fillCount == 0) {
-				//m3Main.SetTilesFillCount(1);
-			//}
-			//if (fillCount == 1) {
-				//m3Main.SetTilesFillCount(0);
-			//}
-		});
 	}
 	
 	public function SwapTo(swapDir: M3SwapDirection): Void {
@@ -134,21 +61,9 @@ class M3Tile extends M3Element implements IGrid
 		var m3Main: M3Main = elementParent.get(M3Main);
 		var curBlock: M3Block = m3Main.gridBoard[idx][idy];
 		var nextBlock: M3Block = M3Utils.GetBlockToSwap(this, m3Main, swapDir);
-		M3Utils.SwapTiles(curBlock, nextBlock, elementEntity, function() {
-			
-			var blocks: Array<M3Block> = M3Utils.CheckHorizontal(this, m3Main);
-			//if (blocks != null) {
-				//for (block in blocks) {
-					//Utils.ConsoleLog(block.PrintID());
-				//}
-			//}
-			Utils.ConsoleLog(blocks.length + "");
-			//if (blocks.length == 2) {
-				//Utils.ConsoleLog("MATCH!");
-				//return;
-			//}
-			// If invalid move
-			M3Utils.SwapTiles(nextBlock, curBlock, elementEntity);
+		M3Utils.SwapTiles(curBlock, nextBlock, elementEntity, GameData.TILE_TWEEN_SPEED, function() {
+			m3Main.SetStageDirty();
+			M3Utils.SwapTiles(nextBlock, curBlock, elementEntity, GameData.TILE_TWEEN_SPEED);
 		});
 	}
 	
@@ -172,7 +87,7 @@ class M3Tile extends M3Element implements IGrid
 			
 			var script: Script = new Script();
 			script.run(new Sequence([
-				new AnimateTo(this.y, nextTile.y._, 0.2),
+				new AnimateTo(this.y, nextTile.y._, GameData.TILE_TWEEN_SPEED),
 				new CallFunction(function() {
 					SetGridID(nextTile.idx, nextTile.idy);
 					elementEntity.removeChild(new Entity().add(script));
@@ -181,9 +96,6 @@ class M3Tile extends M3Element implements IGrid
 				})
 			]));
 			elementEntity.addChild(new Entity().add(script));
-			
-			//this.y.animateTo(nextTile.y._, 0.2);
-			//SetGridID(nextTile.idx, nextTile.idy);
 		}
 	}
 	
@@ -216,8 +128,8 @@ class M3Tile extends M3Element implements IGrid
 				var script: Script = new Script();
 				script.run(new Sequence([
 					new Parallel([
-						new AnimateTo(this.x, bottomRight.x._, 0.2),
-						new AnimateTo(this.y, bottomRight.y._, 0.2)
+						new AnimateTo(this.x, bottomRight.x._, GameData.TILE_TWEEN_SPEED),
+						new AnimateTo(this.y, bottomRight.y._, GameData.TILE_TWEEN_SPEED)
 					]),
 					new CallFunction(function() {
 						SetGridID(bottomRight.idx, bottomRight.idy);
@@ -261,8 +173,8 @@ class M3Tile extends M3Element implements IGrid
 				var script: Script = new Script();
 				script.run(new Sequence([
 					new Parallel([
-						new AnimateTo(this.x, bottomLeft.x._, 0.2),
-						new AnimateTo(this.y, bottomLeft.y._, 0.2)
+						new AnimateTo(this.x, bottomLeft.x._, GameData.TILE_TWEEN_SPEED),
+						new AnimateTo(this.y, bottomLeft.y._, GameData.TILE_TWEEN_SPEED)
 					]),
 					new CallFunction(function() {
 						SetGridID(bottomLeft.idx, bottomLeft.idy);
@@ -310,10 +222,9 @@ class M3Tile extends M3Element implements IGrid
 		tileSquare.setAlpha(this.alpha._);
 		tileSquare.setXY(this.x._, this.y._);
 		
-		
-		//UpdateDropPosition();
-		//UpdateFillRight();
-		//UpdateFillLeft();
+		UpdateDropPosition();
+		UpdateFillRight();
+		UpdateFillLeft();
 		
 	}
 

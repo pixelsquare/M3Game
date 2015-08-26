@@ -142,6 +142,33 @@ class M3Utils
 		return result;
 	}
 	
+	public static function CheckVertical(tile: M3Tile, m3Main: M3Main): Array<M3Block> {
+		var result: Array<M3Block> = new Array<M3Block>();
+		
+		var tileIdx: Int = tile.idx;
+		var tileIdy: Int = tile.idy;
+		
+		while (tileIdy > 0) {
+			if (m3Main.gridBoard[tileIdx][tileIdy - 1].GetTile().data.TileDataType != tile.data.TileDataType)
+				break;
+			
+			result.push(m3Main.gridBoard[tileIdx][tileIdy - 1]);
+			tileIdy--;	
+		}
+	
+		tileIdy = tile.idy;
+		while (tileIdy < GameData.GRID_ROWS) {
+			if (m3Main.gridBoard[tileIdx][tileIdy + 1].GetTile().data.TileDataType != tile.data.TileDataType)
+				break;
+			
+			result.push(m3Main.gridBoard[tileIdx][tileIdy + 1]);
+			
+			tileIdy++;
+		}
+		
+		return result;
+	}
+	
 	public static function CheckVerticalMatches(m3Main: M3Main): Map<Int, Array<M3Block>> {
 		var result: Map<Int, Array<M3Block>> = new Map<Int, Array<M3Block>>();
 		
@@ -149,14 +176,7 @@ class M3Utils
 		var curBlock: M3Block = null;
 		var matches: Array<M3Block> = new Array<M3Block>();
 		
-		for (x in 0...GameData.GRID_ROWS) {
-			if (matches.length > 2) {
-				result.set(id, matches);
-				id++;				
-			}
-			matches = new Array<M3Block>();
-			curBlock = null;
-			
+		for (x in 0...GameData.GRID_ROWS) {		
 			for (y in 0...GameData.GRID_COLS) {
 				if(curBlock == null) {
 					curBlock = m3Main.gridBoard[x][y];
@@ -183,6 +203,13 @@ class M3Utils
 					matches.push(block);
 				}
 			}
+			
+			if (matches.length > 2) {
+				result.set(id, matches);
+				id++;				
+			}
+			matches = new Array<M3Block>();
+			curBlock = null;
 		}
 		
 		return result;
@@ -195,14 +222,7 @@ class M3Utils
 		var curBlock: M3Block = null;
 		var matches: Array<M3Block> = new Array<M3Block>();
 		
-		for (y in 0...GameData.GRID_COLS) {
-			if (matches.length > 2) {
-				result.set(id, matches);
-				id++;				
-			}
-			matches = new Array<M3Block>();
-			curBlock = null;
-			
+		for (y in 0...GameData.GRID_COLS) {		
 			for (x in 0...GameData.GRID_ROWS) {
 				if(curBlock == null) {
 					curBlock = m3Main.gridBoard[x][y];
@@ -229,6 +249,13 @@ class M3Utils
 					matches.push(block);
 				}				
 			}
+			
+			if (matches.length > 2) {
+				result.set(id, matches);
+				id++;				
+			}
+			matches = new Array<M3Block>();
+			curBlock = null;
 		}
 		
 		return result;
@@ -301,5 +328,18 @@ class M3Utils
 		//}
 		
 		return result;
+	}
+	
+	public static function HasMovingBlocks(m3Main: M3Main): Bool {
+		var count: Int = 0;
+		
+		for (tile in m3Main.tileList) {
+			if (tile != null && !tile.isAnimating)
+				continue;
+				
+			count++;
+		}
+
+		return count > 0;
 	}
 }

@@ -14,7 +14,9 @@ class GameData
 	public static inline var GRID_COLOR_2: Int = 0xC1C1C1;
 	
 	public static inline var TILE_SIZE: Int = 20;
+	public static inline var TILE_SCORE: Int = 10;
 	public static inline var TILE_COLOR: Int = 0x66CD00;
+	public static inline var TILE_TWEEN_SPEED: Float = 0.2;
 	
 	public static inline var TILE_TYPE_1_COLOR: Int = 0xFF0000;
 	public static inline var TILE_TYPE_2_COLOR: Int = 0x00FF00;

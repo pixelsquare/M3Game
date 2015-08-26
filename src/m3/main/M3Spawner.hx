@@ -36,8 +36,8 @@ class M3Spawner extends M3Element implements IGrid
 			
 		if (firstBlock.IsBlockEmpty()) {
 			var tile: M3Tile = m3Main.CreateTile(this, firstBlock);
-			tile.alpha.animate(0, 1, 0.1);
-			tile.y.animateTo(firstBlock.y._, 0.2);
+			tile.alpha.animate(0, 1, GameData.TILE_TWEEN_SPEED / 2);
+			tile.y.animateTo(firstBlock.y._, GameData.TILE_TWEEN_SPEED);
 		}
 	}
 	

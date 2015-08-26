@@ -6,12 +6,19 @@ import flambe.Entity;
 import flambe.input.KeyboardEvent;
 import flambe.input.PointerEvent;
 import flambe.math.Rectangle;
+import flambe.script.CallFunction;
+import flambe.script.Delay;
+import flambe.script.Repeat;
+import flambe.script.Script;
+import flambe.script.Sequence;
+import flambe.util.Signal1;
 import m3.core.DataManager;
 import m3.pxlSq.Utils;
 import flambe.System;
 import m3.core.GameManager;
 import m3.main.GameData;
 import flambe.input.Key;
+import flambe.math.Point;
 
 /**
  * ...
@@ -24,6 +31,11 @@ class M3Main extends Component
 	
 	public var gridBoard(default, null): Array<Array<M3Block>>;
 	public var tileList(default, null): Array<M3Tile>;
+	
+	public var gameScore(default, null): Int;
+	
+	public var onTilePointerIn: Signal1<M3Tile>;
+	public var onScoreChanged: Signal1<Int>;
 	
 	private var tileEntity: Entity;
 	private var tileDataTypes: Array<M3TileData>;
@@ -137,6 +149,7 @@ class M3Main extends Component
 	
 	public function RemoveTile(gridTile: M3Tile): Void {	
 		gridBoard[gridTile.idx][gridTile.idy].SetBlockTile(null);
+		AddScore(GameData.TILE_SCORE);
 		
 		for (tile in tileList) {
 			if (tile == gridTile) {
@@ -176,8 +189,21 @@ class M3Main extends Component
 		}
 	}
 	
+	public function AddScore(score: Int = 1): Void {
+		gameScore += score;
+		onScoreChanged.emit(gameScore);
+	}
+	
+	public function SubtractScore(score: Int = 1): Void {
+		gameScore -= score;
+		onScoreChanged.emit(gameScore);
+	}
+	
 	override public function onAdded() {
 		super.onAdded();
+
+		gameScore = 0;
+		onScoreChanged = new Signal1<Int>();
 		
 		owner.addChild(gameEntity = new Entity());
 		
@@ -189,44 +215,119 @@ class M3Main extends Component
 		GenerateTileTypes();
 		CreateGrid();
 		CreateTiles();
-		//CreateSpawners();
+		CreateSpawners();
+	}
+	
+	override public function onStart() {
+		super.onStart();
 		
-		//var num: Int = 0;
-		//for (ii in 0...9) {
-			//var tmp: Int = (ii < num) ? (num - ii) - 1 : ii + 1;
-			//Utils.ConsoleLog(tmp + "");
-		//}
+		var pointerIsDown: Bool = false;
+		var startPoint: Point = new Point();
+		var endPoint: Point = new Point();
+		var curTile: M3Tile = null;
 		
-		//var test: Map<Int, Array<M3Block>> = M3Utils.CheckMatchCombo(this);
-		//for (key in test.keys()) {
-			//Utils.ConsoleLog(key + " " + test.get(key).length + "");
-		//}
+		onTilePointerIn = new Signal1<M3Tile>();
+		onTilePointerIn.connect(function(tile: M3Tile) {
+			if (pointerIsDown)
+				return;
+			
+			curTile = tile;
+		});
 		
-		System.keyboard.down.connect(function(event: KeyboardEvent) {
-			if (event.key == Key.Space) {
-				for (key in M3Utils.CheckMatchCombo(this).keys()) {
-					var a: Array<M3Block> = M3Utils.CheckMatchCombo(this).get(key);
-					for (b in a) {
-						b.dispose();
+		System.pointer.down.connect(function(event: PointerEvent) {				
+			startPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
+			endPoint = new Point();
+			pointerIsDown = true;
+		});
+		
+		System.pointer.up.connect(function(event: PointerEvent) {
+			if (!pointerIsDown)
+				return;
+				
+			if (M3Utils.HasMovingBlocks(this))
+				return;
+				
+			endPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
+			
+			var direction: Point = new Point(
+				endPoint.x - startPoint.x,
+				endPoint.y - startPoint.y
+			);
+			
+			if(curTile != null) {
+				if (Math.abs(direction.x) > Math.abs(direction.y)) {
+					if (direction.x > 0) {
+						curTile.SwapTo(M3SwapDirection.Right);
+					}
+					else {
+						curTile.SwapTo(M3SwapDirection.Left);
+					}
+				}
+				else {
+					if (direction.y > 0) {
+						curTile.SwapTo(M3SwapDirection.Up);
+					}
+					else {
+						curTile.SwapTo(M3SwapDirection.Down);
 					}
 				}
 			}
+			
+			pointerIsDown = false;
+			curTile = null;
 		});
 		
-		//var tmp: Map<Int, String> = new Map<Int, String>();
-		//tmp.set(0, "ASD");
-		//tmp.set(1, "QWE");
-		//
-		//for (key in tmp.keys()) {
-			//Utils.ConsoleLog(tmp.get(key));
-		//}
+		SetStageDirty();
 	}
 	
-	//override public function onUpdate(dt:Float) {
-		//super.onUpdate(dt);
-		//if (tileList.length > 0) {
-			//Utils.ConsoleLog(tileList[0].fillCount + "");
-			////Utils.ConsoleLog(gridBoard[1][3].IsBlockEmpty());
-		//}
-	//}
+	public function SetStageDirty(): Void {
+		var horizontalMatches: Map<Int, Array<M3Block>> = M3Utils.CheckHorizontalMatches(this);
+		var verticalMatches: Map<Int, Array<M3Block>> = M3Utils.CheckVerticalMatches(this);		
+		
+		if (!horizontalMatches.exists(0) && !verticalMatches.exists(0))
+			return;
+			
+		var blocks: Array<M3Block> = new Array<M3Block>();
+		for (key in verticalMatches.keys()) {
+			for (block in verticalMatches.get(key)) {
+				if (block.IsBlockEmpty())
+					continue;
+				
+				if (Lambda.has(blocks, block))
+					continue;
+					
+				blocks.push(block);
+			}
+		}
+		
+		for (key in horizontalMatches.keys()) {
+			for (block in horizontalMatches.get(key)) {
+				if (block.IsBlockEmpty())
+					continue;
+				
+				if (Lambda.has(blocks, block))
+					continue;
+					
+				blocks.push(block);
+			}
+		}		
+		
+		for (block in blocks) {
+			block.GetTile().dispose();
+		}
+		
+		var script: Script = new Script();
+		script.run(new Repeat(new Sequence([
+			new Delay(0.5),
+			new CallFunction(function() { 
+				if (!M3Utils.HasMovingBlocks(this) && tileList.length == (GameData.GRID_ROWS * GameData.GRID_COLS)) {
+					SetStageDirty();
+				
+					gameEntity.removeChild(new Entity().add(script));
+					script.dispose();
+				}
+			})
+		])));
+		gameEntity.addChild(new Entity().add(script));
+	}
 }

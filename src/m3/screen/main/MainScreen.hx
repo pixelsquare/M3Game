@@ -39,18 +39,21 @@ class MainScreen extends GameScreen
 		HideTitleText();
 		
 		screenEntity.addChild(new Entity().add(GameManager.current.GetM3Main()));
+
+		var scoreFont: Font = new Font(gameAsset, AssetName.FONT_BETTY_32);
+		var scoreText: TextSprite = new TextSprite(scoreFont, "SCORE:\n0");
+		scoreText.centerAnchor();
+		scoreText.setAlign(TextAlign.Center);
+		scoreText.setXY(
+			System.stage.width * 0.9,
+			System.stage.height * 0.45
+		);
+		screenEntity.addChild(new Entity().add(scoreText));
 		
-		//var sprite1: FillSprite = new FillSprite(0xFFFFFF, 10, 10);
-		//sprite1.centerAnchor();
-		//sprite1.setXY(System.stage.width / 2, System.stage.height / 2);
-		//screenEntity.addChild(new Entity().add(sprite1));
+		GameManager.current.GetM3Main().onScoreChanged.connect(function(score: Int) {
+			scoreText.text = "SCORE:\n" + score;
+		});
 		
-		//var sprite2: FillSprite = new FillSprite(0x445522, 10, 10);
-		//sprite2.centerAnchor();
-		//sprite2.setXY(System.stage.width / 2 + 10, System.stage.height / 2);
-		//screenEntity.addChild(new Entity().add(sprite2));
-		
-		//Utils.ConsoleLog(screenEntity.toString());
 		return screenEntity;
 	}
 	
