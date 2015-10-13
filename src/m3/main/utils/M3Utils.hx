@@ -1,4 +1,4 @@
-package m3.main;
+package m3.main.utils;
 import flambe.Entity;
 import flambe.math.Point;
 import flambe.script.AnimateTo;
@@ -7,6 +7,13 @@ import flambe.script.Parallel;
 import flambe.script.Script;
 import flambe.script.Sequence;
 import flambe.System;
+import flash.events.BrowserInvokeEvent;
+import m3.main.grid.M3Block;
+import m3.main.M3Main;
+import m3.main.utils.M3SwapDirection;
+import m3.main.tile.M3Tile;
+import m3.main.tile.TileDataType;
+import m3.main.tile.bomb.M3TileBomb;
 
 import m3.pxlSq.Utils;
 
@@ -28,26 +35,26 @@ class M3Utils
 		return result;
 	}
 	
-	public static function GetTileColor(type: TileType): Int {
-		if (type == TileType.Tile_Type_1) {
+	public static function GetTileColor(type: TileDataType): Int {
+		if (type == TileDataType.Tile_Type_1) {
 			return GameData.TILE_TYPE_1_COLOR;
 		}
-		else if (type == TileType.Tile_Type_1) {
+		else if (type == TileDataType.Tile_Type_1) {
 			return GameData.TILE_TYPE_1_COLOR;
 		}
-		else if (type == TileType.Tile_Type_2) {
+		else if (type == TileDataType.Tile_Type_2) {
 			return GameData.TILE_TYPE_2_COLOR;
 		}
-		else if (type == TileType.Tile_Type_3) {
+		else if (type == TileDataType.Tile_Type_3) {
 			return GameData.TILE_TYPE_3_COLOR;
 		}
-		else if (type == TileType.Tile_Type_4) {
+		else if (type == TileDataType.Tile_Type_4) {
 			return GameData.TILE_TYPE_4_COLOR;
 		}
-		else if (type == TileType.Tile_Type_5) {
+		else if (type == TileDataType.Tile_Type_5) {
 			return GameData.TILE_TYPE_5_COLOR;
 		}
-		else if (type == TileType.Tile_Type_6) {
+		else if (type == TileDataType.Tile_Type_6) {
 			return GameData.TILE_TYPE_6_COLOR;
 		}
 		return 0;
@@ -330,6 +337,28 @@ class M3Utils
 		return result;
 	}
 	
+	public static function CheckWrapperCombo(tile: M3Tile, m3Main: M3Main): Bool {
+		var vertical: Array<M3Block> = CheckVertical(tile, m3Main);
+		var horizontal: Array<M3Block> = CheckHorizontal(tile, m3Main);
+		Utils.ConsoleLog("WRAPPER! " + vertical.length + " " + horizontal.length);
+		
+		return vertical.length >= 2 && horizontal.length >= 2;
+	}
+	
+	public static function CheckVLineCombo(tile: M3Tile, m3Main: M3Main): Bool {
+		var vertical: Array<M3Block> = CheckVertical(tile, m3Main);
+		Utils.ConsoleLog("VERTICAL! " + vertical.length);
+		
+		return vertical.length >= 3;
+	}
+	
+	public static function CheckHLineCombo(tile: M3Tile, m3Main: M3Main): Bool {
+		var horizontal: Array<M3Block> = CheckHorizontal(tile, m3Main);
+		Utils.ConsoleLog("HORIZONTAL! " + horizontal.length);
+		
+		return horizontal.length >= 3;
+	}
+	
 	public static function HasMovingBlocks(m3Main: M3Main): Bool {
 		var count: Int = 0;
 		
@@ -341,5 +370,20 @@ class M3Utils
 		}
 
 		return count > 0;
+	}
+	
+	public static function Lerp(from: Float, to: Float, time: Float): Float {
+		return (from + time * (to - from));
+	}
+	
+	public static function BombCount(m3Main: M3Main): Int {
+		var result: Int = 0;
+		for (tile in m3Main.tileList) {
+			if (tile != null && Std.is(tile, M3TileBomb)) {
+				result++;
+			}
+		}
+		
+		return result;
 	}
 }

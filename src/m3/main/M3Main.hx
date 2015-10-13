@@ -14,10 +14,24 @@ import flambe.script.Sequence;
 import flambe.util.Signal1;
 import format.swf.Data.SCRIndex;
 import m3.core.DataManager;
+import m3.main.grid.M3Block;
+import m3.main.spawner.M3Spawner;
+import m3.main.tile.bomb.BombType;
+import m3.main.tile.bomb.M3AreaBomb;
+import m3.main.tile.bomb.M3ColorBomb;
+import m3.main.tile.bomb.M3HLineBomb;
+import m3.main.tile.bomb.M3TileBomb;
+import m3.main.tile.bomb.M3VLineBomb;
+import m3.main.tile.M3Element;
+import m3.main.tile.M3Tile;
+import m3.main.tile.M3TileData;
+import m3.main.utils.M3SwapDirection;
+import m3.main.utils.M3Utils;
+import m3.main.tile.TileDataType;
 import m3.pxlSq.Utils;
 import flambe.System;
 import m3.core.GameManager;
-import m3.main.GameData;
+import m3.main.utils.GameData;
 import flambe.input.Key;
 import flambe.math.Point;
 
@@ -32,6 +46,7 @@ class M3Main extends Component
 	
 	public var gridBoard(default, null): Array<Array<M3Block>>;
 	public var tileList(default, null): Array<M3Tile>;
+	public var bombList(default, null): Array<M3TileBomb>;
 	
 	public var gameScore(default, null): Int;
 	
@@ -41,10 +56,13 @@ class M3Main extends Component
 	private var tileEntity: Entity;
 	private var tileDataTypes: Array<M3TileData>;
 	
+	private var curTile: M3Tile;
+	
 	public function new(data: DataManager) { }
 	
 	public function CreateGrid(): Void {
 		gridBoard = new Array<Array<M3Block>>();
+		bombList = new Array<M3TileBomb>();
 		
 		var x: Int = 0, i: Int = 0;
 		while (x < GameData.GRID_ROWS) {
@@ -57,8 +75,8 @@ class M3Main extends Component
 				grid.SetSize(GameData.GRID_SIZE, GameData.GRID_SIZE);	
 				grid.SetParent(owner);
 				grid.SetXY(
-					(System.stage.width / 2) + ((x - (GameData.GRID_ROWS / 2)) * grid.width * GameData.GRID_OFFSET),
-					(System.stage.height / 2) + ((y - (GameData.GRID_COLS / 2)) * grid.height * GameData.GRID_OFFSET)
+					(System.stage.width / 2) + ((x - (GameData.GRID_ROWS / 2)) * grid.GetNaturalWidth() * GameData.GRID_OFFSET),
+					(System.stage.height / 2) + ((y - (GameData.GRID_COLS / 2)) * grid.GetNaturalHeight() * GameData.GRID_OFFSET)
 				);
 				owner.addChild(new Entity().add(grid));
 				
@@ -87,8 +105,8 @@ class M3Main extends Component
 				if (grid.IsBlocked())
 					continue;
 					
-				var rand: Int = Math.round(Math.random() * Type.allEnums(TileType).length);
-				var randIndx: Int = rand % (Type.allEnums(TileType).length - 3);
+				var rand: Int = Math.round(Math.random() * Type.allEnums(TileDataType).length);
+				var randIndx: Int = rand % (Type.allEnums(TileDataType).length);
 
 				var tile: M3Tile = new M3Tile(GameData.TILE_COLOR);
 				tile.data = tileDataTypes[randIndx];
@@ -110,26 +128,26 @@ class M3Main extends Component
 			spawner.SetGridID(ii, 0);
 			spawner.SetSize(15, 15);
 			spawner.SetParent(owner);
-			spawner.SetXY(gridBoard[ii][0].x._, gridBoard[ii][0].y._ - (gridBoard[ii][0].height * 1.5));
+			spawner.SetXY(gridBoard[ii][0].x._, gridBoard[ii][0].y._ - (gridBoard[ii][0].GetNaturalHeight() * 1.5));
 			owner.addChild(new Entity().add(spawner));
 			spawner.HideVisual();
 		}
 	}
 	
-	public function CreateTile(spawner: M3Spawner, grid: M3Block): M3Tile {
+	public function CreateTile(element: M3Element, grid: M3Block): M3Tile {
 		if (tileList == null) {
 			tileList = new Array<M3Tile>();
 		}
 		
-		var rand: Int = Math.round(Math.random() * Type.allEnums(TileType).length);
-		var randIndx: Int = rand % Type.allEnums(TileType).length;
+		var rand: Int = Math.round(Math.random() * Type.allEnums(TileDataType).length);
+		var randIndx: Int = rand % (Type.allEnums(TileDataType).length);
 		
 		var tile: M3Tile = new M3Tile(GameData.TILE_COLOR);
 		tile.data = tileDataTypes[randIndx];
 		tile.SetGridID(grid.idx, grid.idy);
 		tile.SetSize(GameData.TILE_SIZE, GameData.TILE_SIZE);
 		tile.SetParent(owner);
-		tile.SetXY(spawner.x._, spawner.y._);
+		tile.SetXY(element.x._, element.y._);
 		owner.addChild(new Entity().add(tile));
 		
 		grid.SetBlockTile(tile);
@@ -138,9 +156,38 @@ class M3Main extends Component
 		return tile;
 	}
 	
+	public function CreateBomb(type: BombType, grid: M3Block): M3TileBomb {	
+		Utils.ConsoleLog("Bomb Created! " + type);
+		var bomb: M3TileBomb = new M3TileBomb(GameData.TILE_BOMB_COLOR);
+		if (type == BombType.AREA_BOMB) {
+			bomb = new M3AreaBomb(GameData.TILE_BOMB_COLOR);
+		}
+		else if (type == BombType.LINE_BOMB_V) {
+			bomb = new M3VLineBomb(GameData.TILE_BOMB_COLOR);
+		}
+		else if (type == BombType.LINE_BOMB_H) {
+			bomb = new M3HLineBomb(GameData.TILE_BOMB_COLOR);
+		}
+		else if (type == BombType.COLOR_BOMB) {
+			bomb = new M3ColorBomb(GameData.TILE_BOMB_COLOR);
+		}
+		
+		bomb.SetGridID(grid.idx, grid.idy);
+		bomb.SetSize(20, 20);
+		bomb.SetParent(owner);
+		bomb.SetXY(grid.x._, grid.y._);
+		owner.addChild(new Entity().add(bomb));
+	
+		//gridBoard[grid.idx][grid.idy].SetBlockTile(bomb);
+		//grid.SetBlockTile(bomb);
+		bombList.push(bomb);
+		
+		return bomb;
+	}
+	
 	public function GenerateTileTypes(): Void {
 		tileDataTypes = new Array<M3TileData>();		
-		for (type in Type.allEnums(TileType)) {
+		for (type in Type.allEnums(TileDataType)) {
 			var tileData: M3TileData = new M3TileData();
 			tileData.TileDataType = type;
 			tileData.TileColor = M3Utils.GetTileColor(type);
@@ -225,7 +272,8 @@ class M3Main extends Component
 		var pointerIsDown: Bool = false;
 		var startPoint: Point = new Point();
 		var endPoint: Point = new Point();
-		var curTile: M3Tile = null;
+		curTile = null;
+		
 		
 		onTilePointerIn = new Signal1<M3Tile>();
 		onTilePointerIn.connect(function(tile: M3Tile) {
@@ -234,6 +282,14 @@ class M3Main extends Component
 			
 			curTile = tile;
 		});
+		
+		//System.pointer.down.connect(function(event: PointerEvent) {				
+			//if (curTile == null)
+				//return;
+			//
+			//curTile.dispose();
+			//CreateBomb(BombType.LINE_BOMB_H, gridBoard[curTile.idx][curTile.idy]);
+		//});
 		
 		System.pointer.down.connect(function(event: PointerEvent) {				
 			startPoint = new Point(event.viewX - (System.stage.width / 2), (System.stage.height / 2) - event.viewY);
@@ -258,18 +314,18 @@ class M3Main extends Component
 			if(curTile != null) {
 				if (Math.abs(direction.x) > Math.abs(direction.y)) {
 					if (direction.x > 0) {
-						curTile.SwapTo(M3SwapDirection.Right);
+						curTile.Swap(M3SwapDirection.Right);
 					}
 					else {
-						curTile.SwapTo(M3SwapDirection.Left);
+						curTile.Swap(M3SwapDirection.Left);
 					}
 				}
 				else {
 					if (direction.y > 0) {
-						curTile.SwapTo(M3SwapDirection.Up);
+						curTile.Swap(M3SwapDirection.Up);
 					}
 					else {
-						curTile.SwapTo(M3SwapDirection.Down);
+						curTile.Swap(M3SwapDirection.Down);
 					}
 				}
 			}
@@ -296,41 +352,63 @@ class M3Main extends Component
 		
 		if (!horizontalMatches.exists(0) && !verticalMatches.exists(0))
 			return;
-			
-		var blocks: Array<M3Block> = new Array<M3Block>();
+		
+		var intersectingBlocks: Array<M3Block> = new Array<M3Block>();
+		
+		//var blocks: Array<M3Block> = new Array<M3Block>();
 		for (key in verticalMatches.keys()) {
+			var blockList: Array<M3Block> = verticalMatches.get(key);
+			if (blockList.length > 3) {
+				blockList[0].GetTile().dispose();
+				var bomb: M3TileBomb = CreateBomb(BombType.LINE_BOMB_V, blockList[0]);
+				blockList[0].SetBlockTile(bomb);
+				//Utils.ConsoleLog((bomb == null) + "");
+			}
+			
 			for (block in verticalMatches.get(key)) {
 				if (block.IsBlockEmpty())
 					continue;
 				
-				if (Lambda.has(blocks, block))
-					continue;
+				block.GetTile().dispose();
+				//if (Lambda.has(blocks, block))
+					//continue;
 					
-				blocks.push(block);
+				//blocks.push(block);
 			}
 		}
 		
 		for (key in horizontalMatches.keys()) {
+			var blockList: Array<M3Block> = horizontalMatches.get(key);
+			if (blockList.length > 3) {
+				blockList[0].GetTile().dispose();
+				var bomb: M3TileBomb = CreateBomb(BombType.LINE_BOMB_H, blockList[0]);
+				blockList[0].SetBlockTile(bomb);
+				//Utils.ConsoleLog((bomb == null) + "");
+			}
+			
 			for (block in horizontalMatches.get(key)) {
 				if (block.IsBlockEmpty())
 					continue;
 				
-				if (Lambda.has(blocks, block))
-					continue;
+				block.GetTile().dispose();
+				//if (Lambda.has(blocks, block)) {
+					//intersectingBlocks.push(block);
+					//continue;
+				//}
 					
-				blocks.push(block);
+				//blocks.push(block);
 			}
 		}		
 		
-		for (block in blocks) {
-			block.GetTile().dispose();
-		}
+		//for (block in blocks) {
+			//block.GetTile().dispose();
+		//}
 		
 		var script: Script = new Script();
 		script.run(new Repeat(new Sequence([
 			new Delay(0.5),
 			new CallFunction(function() { 
-				if (!M3Utils.HasMovingBlocks(this) && tileList.length == (GameData.GRID_ROWS * GameData.GRID_COLS)) {
+				if (!M3Utils.HasMovingBlocks(this) && tileList.length == (GameData.GRID_ROWS * GameData.GRID_COLS) - bombList.length) {
 					SetStageDirty();
 				
 					gameEntity.removeChild(new Entity().add(script));
@@ -340,4 +418,11 @@ class M3Main extends Component
 		])));
 		gameEntity.addChild(new Entity().add(script));
 	}
+	
+	//override public function onUpdate(dt:Float) 
+	//{
+		//super.onUpdate(dt);
+		//Utils.ConsoleLog(M3Utils.BombCount(this) + "");
+		////Utils.ConsoleLog(testBomb.x._ + " " + testBomb.y._);
+	//}
 }

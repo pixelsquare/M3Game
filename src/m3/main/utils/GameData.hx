@@ -1,4 +1,4 @@
-package m3.main;
+package m3.main.utils;
 
 /**
  * ...
@@ -17,6 +17,7 @@ class GameData
 	public static inline var TILE_SCORE: Int = 10;
 	public static inline var TILE_COLOR: Int = 0x66CD00;
 	public static inline var TILE_TWEEN_SPEED: Float = 0.2;
+	public static inline var TILE_BOMB_COLOR = 0xEE82EE;
 	
 	public static inline var TILE_TYPE_1_COLOR: Int = 0xFF0000;
 	public static inline var TILE_TYPE_2_COLOR: Int = 0x00FF00;

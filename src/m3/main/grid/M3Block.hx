@@ -1,4 +1,6 @@
-package m3.main;
+package m3.main.grid;
+import m3.main.tile.M3Tile;
+import m3.main.tile.bomb.M3TileBomb;
 
 /**
  * ...
@@ -34,6 +36,10 @@ class M3Block extends M3Grid
 	
 	public function IsBlockEmpty(): Bool {
 		return blockTile == null;
+	}
+	
+	public function IsBlockBomb(): Bool {
+		return Std.is(blockTile, M3TileBomb);
 	}
 	
 	public function GetTile(): M3Tile {

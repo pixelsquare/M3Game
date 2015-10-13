@@ -1,6 +1,7 @@
-package m3.main;
+package m3.main.tile;
 
 import flambe.Component;
+import m3.main.tile.TileDataType;
 
 /**
  * ...
@@ -8,7 +9,7 @@ import flambe.Component;
  */
 class M3TileData extends Component
 {
-	public var TileDataType: TileType;
+	public var TileDataType: TileDataType;
 	
 	public var TileColor: Int;
 	

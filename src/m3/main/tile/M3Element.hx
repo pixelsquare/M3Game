@@ -1,4 +1,4 @@
-package m3.main;
+package m3.main.tile;
 
 import flambe.Component;
 import flambe.Entity;
@@ -19,8 +19,11 @@ class M3Element extends Component
 	public var x(default, null): AnimatedFloat;
 	public var y(default, null): AnimatedFloat;
 	
-	public var width(default, null): Float;
-	public var height(default, null): Float;
+	public var scaleX(default, null): AnimatedFloat;
+	public var scaleY(default, null): AnimatedFloat;
+	
+	public var width(default, null): AnimatedFloat;
+	public var height(default, null): AnimatedFloat;
 	
 	private var elementParent: Entity;
 	private var elementEntity: Entity;
@@ -31,8 +34,11 @@ class M3Element extends Component
 		this.x = new AnimatedFloat(0.0);
 		this.y = new AnimatedFloat(0.0);
 		
-		this.width = 0;
-		this.height = 0;
+		this.scaleX = new AnimatedFloat(1.0);
+		this.scaleY = new AnimatedFloat(1.0);
+		
+		this.width = new AnimatedFloat(0.0);
+		this.height = new AnimatedFloat(0.0);
 	}
 	
 	public function SetAlpha(alpha: Float): Void {
@@ -45,12 +51,25 @@ class M3Element extends Component
 	}
 	
 	public function SetSize(width: Float, height: Float): Void {
-		this.width = width;
-		this.height = height;
+		this.width._ = width;
+		this.height._ = height;
+	}
+	
+	public function SetScale(sclX: Float, sclY: Float): Void {
+		this.scaleX._ = sclX;
+		this.scaleY._ = sclY;
 	}
 	
 	public function SetParent(parent: Entity): Void {
 		this.elementParent = parent;
+	}
+	
+	public function GetNaturalWidth(): Float {
+		return this.width._;
+	}
+	
+	public function GetNaturalHeight(): Float {
+		return this.height._;
 	}
 	
 	override public function onAdded() {
@@ -72,6 +91,10 @@ class M3Element extends Component
 		this.alpha.update(dt);
 		this.x.update(dt);
 		this.y.update(dt);
+		this.scaleX.update(dt);
+		this.scaleY.update(dt);
+		this.width.update(dt);
+		this.height.update(dt);
 	}
 	
 	override public function dispose() {

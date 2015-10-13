@@ -1,4 +1,4 @@
-package m3.main;
+package m3.main.tile;
 
 import flambe.display.FillSprite;
 import flambe.Entity;
@@ -10,9 +10,13 @@ import flambe.script.Parallel;
 import flambe.script.Script;
 import flambe.script.Sequence;
 import haxe.Timer;
+import m3.main.grid.M3Block;
+import m3.main.utils.IGrid;
+import m3.main.utils.M3SwapDirection;
+import m3.main.utils.M3Utils;
 import m3.pxlSq.Utils;
 import flambe.animation.Ease;
-import m3.main.GameData;
+import m3.main.utils.GameData;
 import flambe.System;
 
 /**
@@ -24,7 +28,9 @@ class M3Tile extends M3TileTouch implements IGrid
 	public var idx(default, null): Int;
 	public var idy(default, null): Int;
 	public var fillCount(default, null): Int;
+	
 	public var isAnimating: Bool;
+	public var isKinematic: Bool;
 	
 	public var data(default, set): M3TileData;
 	public function set_data(newData: M3TileData) {
@@ -48,13 +54,13 @@ class M3Tile extends M3TileTouch implements IGrid
 	}
 	
 	public function DrawTile(): Void {
-		tileSquare = new FillSprite(this.color, this.width, this.height);
+		tileSquare = new FillSprite(this.color, this.width._, this.height._);
 		tileSquare.setXY(this.x._, this.y._);
 		tileSquare.centerAnchor();
 		elementEntity.add(tileSquare);
 	}
 	
-	public function SwapTo(swapDir: M3SwapDirection): Void {
+	public function Swap(swapDir: M3SwapDirection): Void {
 		if (isAnimating)
 			return;
 			
@@ -73,7 +79,7 @@ class M3Tile extends M3TileTouch implements IGrid
 			
 		if (isAnimating)
 			return;
-			
+		
 		var m3Main: M3Main = elementParent.get(M3Main);
 		
 		var nextTile: M3Block = m3Main.gridBoard[idx][idy + 1];
@@ -193,6 +199,10 @@ class M3Tile extends M3TileTouch implements IGrid
 		this.fillCount = count;
 	}
 	
+	public function GetTileType(): TileType {
+		return TileType.CUBE;
+	}
+	
 	override public function SetXY(x:Float, y:Float): Void {
 		super.SetXY(x, y);
 		
@@ -200,6 +210,7 @@ class M3Tile extends M3TileTouch implements IGrid
 			return;	
 		
 		tileSquare.setXY(this.x._, this.y._);
+		tileSquare.setScaleXY(this.scaleX._, this.scaleY._);
 	}
 	
 	override public function SetSize(width:Float, height:Float): Void {
@@ -208,7 +219,7 @@ class M3Tile extends M3TileTouch implements IGrid
 		if (tileSquare == null)
 			return;
 			
-		tileSquare.setSize(this.width, this.height);
+		tileSquare.setSize(this.width._, this.height._);
 	}
 	
 	override public function onAdded() {
@@ -219,13 +230,18 @@ class M3Tile extends M3TileTouch implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
-		tileSquare.setAlpha(this.alpha._);
-		tileSquare.setXY(this.x._, this.y._);
+		if(tileSquare != null) {
+			tileSquare.setAlpha(this.alpha._);
+			tileSquare.setXY(this.x._, this.y._);
+			tileSquare.setScaleXY(this.scaleX._, this.scaleY._);
+			tileSquare.setSize(this.width._, this.height._);
+		}
 		
-		UpdateDropPosition();
-		UpdateFillRight();
-		UpdateFillLeft();
-		
+		if(!isKinematic) {
+			UpdateDropPosition();
+			UpdateFillRight();
+			UpdateFillLeft();
+		}
 	}
 
 	override public function dispose() {

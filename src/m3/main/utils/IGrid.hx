@@ -1,4 +1,4 @@
-package m3.main;
+package m3.main.utils;
 
 /**
  * @author Anthony Ganzon

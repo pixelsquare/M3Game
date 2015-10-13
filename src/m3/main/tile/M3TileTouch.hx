@@ -1,6 +1,7 @@
-package m3.main;
+package m3.main.tile;
 import flambe.display.Sprite;
 import flambe.input.PointerEvent;
+import m3.main.tile.M3Tile;
 import m3.pxlSq.Utils;
 
 /**
@@ -28,5 +29,4 @@ class M3TileTouch extends M3Element
 			});
 		}
 	}
-	
 }

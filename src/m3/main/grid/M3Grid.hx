@@ -1,5 +1,7 @@
-package m3.main;
+package m3.main.grid;
 import flambe.display.FillSprite;
+import m3.main.tile.M3Element;
+import m3.main.utils.IGrid;
 import m3.pxlSq.Utils;
 
 /**
@@ -24,7 +26,7 @@ class M3Grid extends M3Element implements IGrid
 	}
 	
 	public function DrawGrid(): Void {
-		gridSquare = new FillSprite(this.color, this.width, this.height);
+		gridSquare = new FillSprite(this.color, this.width._, this.height._);
 		gridSquare.setXY(this.x._, this.y._);
 		gridSquare.centerAnchor();
 		elementEntity.add(gridSquare);
@@ -54,6 +56,7 @@ class M3Grid extends M3Element implements IGrid
 			return;
 			
 		gridSquare.setXY(this.x._, this.y._);
+		gridSquare.setScaleXY(this.scaleX._, this.scaleY._);
 	}
 	
 	override public function SetSize(width:Float, height:Float): Void {
@@ -62,7 +65,7 @@ class M3Grid extends M3Element implements IGrid
 		if (gridSquare == null)
 			return;
 			
-		gridSquare.setSize(this.width, this.height);
+		gridSquare.setSize(this.width._, this.height._);
 	}
 	
 	override public function onAdded() {
@@ -73,8 +76,13 @@ class M3Grid extends M3Element implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
-		gridSquare.setAlpha(this.alpha._);
-		gridSquare.setXY(this.x._, this.y._);
+		
+		if(gridSquare != null) {
+			gridSquare.setAlpha(this.alpha._);
+			gridSquare.setXY(this.x._, this.y._);
+			gridSquare.setScaleXY(this.scaleX._, this.scaleY._);
+			gridSquare.setSize(this.width._, this.height._);
+		}
 	}
 	
 	override public function dispose() {

@@ -26,6 +26,10 @@ class GameManager
 		m3Main = new M3Main(gameDataManager);
 	}
 	
+	public function GetGameData(): DataManager {
+		return gameDataManager;
+	}
+	
 	public function GetM3Main(): M3Main {
 		return m3Main;
 	}

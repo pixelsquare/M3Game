@@ -11,6 +11,9 @@ package m3.name;
 class AssetName
 {
 	public static inline var LOGO_PXLSQR: 					String = "pxlsq_logo";
+	public static inline var ASSET_CUBE_20: 				String = "asset_cube";
+	
+	
 	public static inline var FONT_ARIAL_20: 				String = "fonts/Arial_20";
 	public static inline var FONT_ARIAL_32: 				String = "fonts/Arial_32";
 	public static inline var FONT_ARIAL_NARROW_20: 			String = "fonts/ArialNarrow_20";

@@ -1,6 +1,11 @@
-package m3.main;
+package m3.main.spawner;
 import flambe.display.FillSprite;
+import m3.main.grid.M3Block;
+import m3.main.tile.M3Tile;
+import m3.main.utils.IGrid;
+import m3.main.utils.GameData;
 import m3.pxlSq.Utils;
+import m3.main.tile.M3Element;
 
 /**
  * ...
@@ -21,7 +26,7 @@ class M3Spawner extends M3Element implements IGrid
 	}
 	
 	public function Draw(): Void {
-		spawnerSquare = new FillSprite(0xFFFFFF, this.width, this.height);
+		spawnerSquare = new FillSprite(0xFFFFFF, this.width._, this.height._);
 		spawnerSquare.setXY(this.x._, this.y._);
 		spawnerSquare.centerAnchor();
 		elementEntity.add(spawnerSquare);
@@ -60,7 +65,7 @@ class M3Spawner extends M3Element implements IGrid
 		if (spawnerSquare == null)
 			return;
 			
-		spawnerSquare.setSize(this.width, this.height);
+		spawnerSquare.setSize(this.width._, this.height._);
 	}
 	
 	override public function onAdded() {
@@ -71,8 +76,13 @@ class M3Spawner extends M3Element implements IGrid
 	
 	override public function onUpdate(dt:Float) {
 		super.onUpdate(dt);
-		spawnerSquare.setAlpha(this.alpha._);
-		spawnerSquare.setXY(this.x._, this.y._);
+		if(spawnerSquare != null) {
+			spawnerSquare.setAlpha(this.alpha._);
+			spawnerSquare.setXY(this.x._, this.y._);
+			spawnerSquare.setScaleXY(this.scaleX._, this.scaleY._);
+			spawnerSquare.setSize(this.width._, this.height._);
+		}
+		
 		SpawnTiles();
 	}
 	

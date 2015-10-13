@@ -1,9 +1,9 @@
-package m3.main;
+package m3.main.tile;
 
 /**
  * @author Anthony Ganzon
  */
-enum TileType 
+enum TileDataType 
 {
 	Tile_Type_1;
 	Tile_Type_2;
